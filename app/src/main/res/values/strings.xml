@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">InstaGhost</string>
+    <string name="xposed_desc">A monochrome, liquid-glass toolkit for Instagram.</string>
+    <string-array name="xposed_scope"><item>com.instagram.android</item></string-array>
+</resources>

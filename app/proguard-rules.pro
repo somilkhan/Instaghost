@@ -1,0 +1,2 @@
+-keep class dev.instaghost.module.MainHook { *; }
+-keep class org.luckypray.dexkit.** { *; }
