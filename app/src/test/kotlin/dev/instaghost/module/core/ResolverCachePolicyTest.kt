@@ -12,6 +12,12 @@ class ResolverCachePolicyTest {
         assertTrue("6:old:hash" in removed)
     }
 
+    @Test fun malformedAndOtherVersionKeysAreDiscarded() {
+        val keys = setOf("8:valid:hash", "8:malformed", "old:key", ":missing", "9:key:hash")
+        assertEquals(setOf("8:malformed", "old:key", ":missing", "9:key:hash"),
+            ResolverCachePolicy.keysToRemove(8L, keys))
+    }
+
     @Test fun retainsCurrentVersionEntriesWithinLimit() {
         val keys = (0 until 128).map { "8:key_$it:fingerprint" }.toSet()
         assertTrue(ResolverCachePolicy.keysToRemove(8L, keys).isEmpty())

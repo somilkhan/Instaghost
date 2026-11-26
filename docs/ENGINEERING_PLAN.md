@@ -14,8 +14,8 @@
 - [ ] Verify package scoping and module entry point.
 - [ ] Make hook registration idempotent and isolate failures per feature.
 - [ ] Define explicit feature states: Disabled, Resolving, Resolved, Installed, Unsupported, Failed.
-- [ ] Ensure cached data is version-bound and invalidated on package/version changes.
-- [ ] Avoid trusting cached reflection descriptors without validation.
+- [x] Ensure cached data is version-bound and invalidated on package/version changes.
+- [x] Avoid trusting cached reflection descriptors without validation.
 
 ## Phase 1: Resolver diagnostics
 - [ ] Define a result type for resolution: candidate count, elapsed time, failure category, and validated target metadata.

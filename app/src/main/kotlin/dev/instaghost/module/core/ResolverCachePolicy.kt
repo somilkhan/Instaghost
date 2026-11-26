@@ -5,8 +5,9 @@ internal object ResolverCachePolicy {
     const val MAX_ENTRIES = 128
 
     fun keysToRemove(currentVersion: Long, keys: Set<String>): Set<String> {
-        val current = keys.filter { it.substringBefore(":") == currentVersion.toString() }.sorted()
-        val stale = keys.filter { it.substringBefore(":") != currentVersion.toString() }.toSet()
+        val versionPrefix = "$currentVersion:"
+        val current = keys.filter { it.startsWith(versionPrefix) }.sorted()
+        val stale = keys.filterNot { it.startsWith(versionPrefix) }.toSet()
         return stale + current.drop(MAX_ENTRIES)
     }
 }

@@ -28,6 +28,8 @@ Never record message contents, URLs shared in chats, account identifiers, authen
 ## Cache
 Cache keys should include the feature identifier and Instagram version code. Clear or bypass cached entries on version change. Treat cache entries as hints, not proof: validate the descriptor and expected method metadata before installation. Invalidate on validation failure.
 
+Persisted resolver metadata is bounded to 128 entries per current app version. Old-version entries and excess current-version entries are pruned deterministically during resolver initialization. Cache entries are not treated as verified hook targets.
+
 ## Matching policy
 - 0 candidates: unsupported for this build.
 - 1 candidate: proceed to metadata validation.
