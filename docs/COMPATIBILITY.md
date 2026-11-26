@@ -4,6 +4,7 @@ No Instagram release is considered supported until a test record is completed.
 
 | Instagram version name | version code | Android version | device | module commit | smoke test | notes |
 |---|---:|---|---|---|---|---|
+| 456.0.0.53.78 | 386214534 | Not tested | Not tested | APK-analysis commit pending | Pending | APKM sample analyzed; split install and device validation pending |
 | Not yet validated | | | | | Pending | |
 
 ## Test protocol
