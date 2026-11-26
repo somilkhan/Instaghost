@@ -11,11 +11,14 @@ internal object ApkInventory {
         val basePresent: Boolean get() = base != null
     }
 
-    fun collect(info: ApplicationInfo): Inventory {
-        val base = info.sourceDir?.takeIf { it.isNotBlank() }
-        val splits = (info.splitSourceDirs ?: emptyArray()).filter { it.isNotBlank() && it != base }.distinct()
+    fun collect(info: ApplicationInfo): Inventory =
+        fromPaths(info.sourceDir, info.splitSourceDirs?.asList().orEmpty()) { File(it).isFile }
+
+    /** Pure inventory policy, injectable file-existence check for deterministic tests. */
+    internal fun fromPaths(basePath: String?, splitPaths: List<String>, exists: (String) -> Boolean): Inventory {
+        val base = basePath?.takeIf { it.isNotBlank() }
+        val splits = splitPaths.filter { it.isNotBlank() && it != base }.distinct()
         val all = listOfNotNull(base) + splits
-        val missing = all.count { !File(it).isFile }
-        return Inventory(base, splits, missing)
+        return Inventory(base, splits, all.count { !exists(it) })
     }
 }
