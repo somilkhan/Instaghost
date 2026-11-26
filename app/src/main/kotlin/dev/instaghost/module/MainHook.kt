@@ -8,7 +8,8 @@ import de.robv.android.xposed.XC_MethodHook
 import de.robv.android.xposed.XposedBridge
 import de.robv.android.xposed.XposedHelpers
 import de.robv.android.xposed.callbacks.XC_LoadPackage
-import dev.instaghost.module.core.ApkInventory\nimport dev.instaghost.module.core.Prefs
+import dev.instaghost.module.core.ApkInventory
+import dev.instaghost.module.core.Prefs
 import dev.instaghost.module.core.Resolver
 import dev.instaghost.module.core.failureCategory
 import dev.instaghost.module.features.Features
