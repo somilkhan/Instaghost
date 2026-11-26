@@ -13,6 +13,7 @@ import android.view.ViewGroup
 import android.view.WindowManager
 import android.widget.*
 import dev.instaghost.module.compatibility.CompatibilitySnapshot
+import dev.instaghost.module.compatibility.CompatibilityRegistry
 import dev.instaghost.module.core.Prefs
 import dev.instaghost.module.features.Feature
 import dev.instaghost.module.features.FeatureInstallRecorder
@@ -93,7 +94,7 @@ object GlassMenu {
             runCatching { CompatibilitySnapshot.capture(a) }.onSuccess { snapshot ->
                 diagnostics.addView(text(a, "Host: ${snapshot.packageName}", 12f, t.subtext, false).apply { setPadding(0, dp(a, 4), 0, 0) })
                 diagnostics.addView(text(a, "Version: ${snapshot.versionName} (${snapshot.versionCode})", 12f, t.subtext, false))
-                diagnostics.addView(text(a, "Android: ${snapshot.sdkRelease} · API ${snapshot.androidApi}", 12f, t.subtext, false))
+                diagnostics.addView(text(a, "Android: ${snapshot.sdkRelease} · API ${snapshot.androidApi}", 12f, t.subtext, false))\n                val profile = CompatibilityRegistry.profileFor(snapshot.versionCode)\n                diagnostics.addView(text(a, "Compatibility: ${profile.state.name}", 13f, t.text, true).apply { setPadding(0, dp(a, 6), 0, 0) })\n                diagnostics.addView(text(a, profile.notes, 12f, t.subtext, false))
             }.onFailure {
                 diagnostics.addView(text(a, "Host snapshot unavailable", 12f, t.subtext, false))
             }
