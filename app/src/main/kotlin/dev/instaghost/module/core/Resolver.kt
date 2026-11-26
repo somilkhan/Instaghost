@@ -2,6 +2,7 @@ package dev.instaghost.module.core
 
 import android.content.Context
 import android.os.Build
+import android.os.SystemClock
 import de.robv.android.xposed.XposedBridge
 import org.luckypray.dexkit.DexKitBridge
 import java.lang.reflect.Method
@@ -22,12 +23,18 @@ class Resolver(private val ctx: Context, private val cl: ClassLoader) {
 
     fun method(key: String, vararg anchors: String): Method? {
         if (!key.matches(Regex("[a-z0-9_]{1,64}")) || anchors.isEmpty() || anchors.any { it.isBlank() }) return null
-        val ck = "$version:$key:${AnchorFingerprint.of(*anchors)}"
+        val start = SystemClock.elapsedRealtime()
+        val ck = "${version}:${key}:${AnchorFingerprint.of(*anchors)}"
         cache.getString(ck, null)?.let { sig ->
             val cached = runCatching { Descriptor.toMethod(sig, cl) }.getOrNull()
-            if (cached != null) return cached
+            if (cached != null) {
+                record(key, ResolveOutcome.CACHE_HIT, RuntimeStatus.RESOLVED, elapsed(start), cacheHit=true)
+                return cached
+            }
             cache.edit().remove(ck).apply()
+            record(key, ResolveOutcome.INVALID_CACHE, RuntimeStatus.RESOLVING, elapsed(start))
         }
+        record(key, ResolveOutcome.CACHE_MISS, RuntimeStatus.RESOLVING, elapsed(start))
         return runCatching {
             synchronized(bridgeLock) {
                 val b = bridge ?: run {
@@ -35,19 +42,33 @@ class Resolver(private val ctx: Context, private val cl: ClassLoader) {
                     DexKitBridge.create(ctx.applicationInfo.sourceDir).also { bridge = it }
                 }
                 val candidates = b.findMethod { matcher { usingStrings(*anchors) } }
-                if (candidates.size != 1) return@synchronized null
+                if (candidates.size != 1) {
+                    val outcome = if (candidates.isEmpty()) ResolveOutcome.NO_MATCH else ResolveOutcome.AMBIGUOUS
+                    record(key, outcome, RuntimeStatus.UNSUPPORTED, elapsed(start), candidates.size)
+                    return@synchronized null
+                }
                 candidates.single().getMethodInstance(cl)?.also {
                     cache.edit().putString(ck, Descriptor.of(it)).apply()
+                    record(key, ResolveOutcome.MATCHED, RuntimeStatus.RESOLVED, elapsed(start), candidates.size)
+                } ?: run {
+                    record(key, ResolveOutcome.ERROR, RuntimeStatus.FAILED, elapsed(start), candidates.size, failureCategory="METHOD_NOT_FOUND")
+                    null
                 }
             }
-        }.onFailure { XposedBridge.log("InstaGhost: resolver failure (${failureCategory(it)})") }.getOrNull()
+        }.onFailure {
+            record(key, ResolveOutcome.ERROR, RuntimeStatus.FAILED, elapsed(start), failureCategory=failureCategory(it))
+            XposedBridge.log("InstaGhost: resolver failure (${failureCategory(it)})")
+        }.getOrNull()
+    }
+
+    private fun elapsed(start: Long) = (SystemClock.elapsedRealtime() - start).coerceAtLeast(0)
+    private fun record(key: String, outcome: ResolveOutcome, status: RuntimeStatus, elapsed: Long,
+        count: Int? = null, cacheHit: Boolean = false, failureCategory: String? = null) {
+        RuntimeDiagnostics.log.add(DiagnosticEvent(key, version, status, outcome, count, elapsed, cacheHit, failureCategory))
     }
 
     fun close() {
-        synchronized(bridgeLock) {
-            runCatching { bridge?.close() }
-            bridge = null
-        }
+        synchronized(bridgeLock) { runCatching { bridge?.close() }; bridge = null }
     }
 }
 
@@ -58,10 +79,7 @@ object Descriptor {
         "int" to Int::class.javaPrimitiveType, "long" to Long::class.javaPrimitiveType,
         "float" to Float::class.javaPrimitiveType, "double" to Double::class.javaPrimitiveType,
     )
-
-    fun of(m: Method) = m.declaringClass.name + "#" + m.name + "#" +
-        m.parameterTypes.joinToString(",") { it.name }
-
+    fun of(m: Method) = m.declaringClass.name + "#" + m.name + "#" + m.parameterTypes.joinToString(",") { it.name }
     fun toMethod(sig: String, cl: ClassLoader): Method {
         require(sig.length <= 4096) { "Descriptor too long" }
         val parts = sig.split("#", limit = 3)
@@ -70,7 +88,6 @@ object Descriptor {
         val params = if (p.isEmpty()) emptyArray() else p.split(",").map { resolveType(it, cl) }.toTypedArray()
         return Class.forName(c, false, cl).getDeclaredMethod(n, *params).also { it.isAccessible = true }
     }
-
     private fun resolveType(name: String, cl: ClassLoader): Class<*> {
         primitiveTypes[name]?.let { return requireNotNull(it) }
         return Class.forName(name, false, cl)
