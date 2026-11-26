@@ -10,7 +10,7 @@ class DescriptorPolicyTest {
     }
 
     @Test fun supportsArrayTypesAndNestedClassNames() {
-        assertNotNull(DescriptorPolicy.parse("pkg.Type#method#[I,[Ljava.lang.String;,pkg.Outer$Inner"))
+        assertNotNull(DescriptorPolicy.parse("pkg.Type#method#[I,[Ljava.lang.String;,pkg.Outer\$Inner"))
     }
 
     @Test fun rejectsInvalidClassAndMethodIdentifiers() {
