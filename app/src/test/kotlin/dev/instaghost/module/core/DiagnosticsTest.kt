@@ -116,7 +116,7 @@ class DiagnosticsTest {
     )
 
     @Test fun resolverCachePolicyRemovesStaleVersionsAndExcessEntries() {
-        val keys = (0 until 140).map { "42:feature_$it:fingerprint" } + "41:old:hash"
+        val keys = (0 until 140).map { "42:feature_$it:fingerprint" }.toSet() + "41:old:hash"
         val removals = ResolverCachePolicy.keysToRemove(42L, keys)
         assertTrue("old version should be removed", "41:old:hash" in removals)
         assertEquals(13, removals.size)
