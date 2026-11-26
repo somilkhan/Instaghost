@@ -7,5 +7,5 @@ data class FeatureStatus(
     val detail: String = "",
     val updatedAtMillis: Long = System.currentTimeMillis(),
 ) {
-    enum class State { NOT_ATTEMPTED, INSTALLED, DISABLED, UNAVAILABLE, FAILED }
+    enum class State { NOT_ATTEMPTED, ATTEMPTED, INSTALLED, DISABLED, UNAVAILABLE, FAILED }
 }
