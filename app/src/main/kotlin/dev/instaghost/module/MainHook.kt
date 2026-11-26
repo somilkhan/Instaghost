@@ -22,7 +22,7 @@ class MainHook : IXposedHookLoadPackage {
                 val app = p.thisObject as Application
                 Prefs.init(app)
                 val resolver = Resolver(app, lpparam.classLoader)
-                Features.all.forEach { f ->
+                Features.all.filter { it.implemented }.forEach { f ->
                     runCatching { f.install(resolver) }
                         .onFailure { XposedBridge.log("InstaGhost: ${f.key} failed (" + dev.instaghost.module.core.failureCategory(it) + ")") }
                 }
