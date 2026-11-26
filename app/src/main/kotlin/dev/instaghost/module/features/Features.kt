@@ -2,7 +2,7 @@ package dev.instaghost.module.features
 
 import de.robv.android.xposed.XC_MethodHook
 import de.robv.android.xposed.XposedBridge
-import dev.instaghost.module.core.Prefs
+import dev.instaghost.module.features.FeatureSettings
 import dev.instaghost.module.core.Resolver
 
 /**
@@ -22,7 +22,7 @@ private class BlockFeature(
         val m = r.method(key, *anchors) ?: return XposedBridge.log("InstaGhost: no target for $key")
         XposedBridge.hookMethod(m, object : XC_MethodHook() {
             override fun beforeHookedMethod(p: MethodHookParam) {
-                if (Prefs.bool(key)) p.result = result
+                if (FeatureSettings.isEnabled(key)) p.result = result
             }
         })
     }
