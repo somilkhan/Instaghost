@@ -14,6 +14,12 @@ class Resolver(private val ctx: Context, private val cl: ClassLoader) {
     private val cache = ctx.getSharedPreferences("instaghost_hooks", Context.MODE_PRIVATE)
     private var bridge: DexKitBridge? = null
 
+    init {
+        val stale = cache.all.keys.filter { it.substringBefore(":") != version.toString() }
+        if (stale.isNotEmpty()) cache.edit().also { editor -> stale.forEach(editor::remove) }.apply()
+    }
+
+
     fun method(key: String, vararg anchors: String): Method? {
         if (!key.matches(Regex("[a-z0-9_]{1,64}")) || anchors.isEmpty()) return null
         val ck = "$version:$key"
