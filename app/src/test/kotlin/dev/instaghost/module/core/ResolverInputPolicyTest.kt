@@ -19,6 +19,6 @@ class ResolverInputPolicyTest {
     }
     @Test fun rejectsDuplicatesAndAcceptsUpperBounds() {
         assertFalse(ResolverInputPolicy.isValid("key", arrayOf("same", "same")))
-        assertTrue(ResolverInputPolicy.isValid("key", Array(8) { "x".repeat(256) }))
+        assertTrue(ResolverInputPolicy.isValid("key", Array(8) { ("x".repeat(255) + it.toString()) }))
     }
 }
