@@ -24,3 +24,7 @@ For each test run record:
 
 ## Diagnostic privacy
 Logs should be bounded, local, and sanitized. Never log account identifiers, message content, tokens, URLs with tracking/user data, or host payloads.
+
+## Runtime registry
+
+`CompatibilityRegistry` deliberately defaults every unrecorded host version to `UNKNOWN`. Do not mark a version `SUPPORTED` without documented test evidence (device/API matrix, host build, regression results). Populate exact version-code records only after validation. Unknown builds should not be described as supported.
