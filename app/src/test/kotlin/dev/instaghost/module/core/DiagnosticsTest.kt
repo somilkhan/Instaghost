@@ -9,6 +9,7 @@ class DiagnosticsTest {
         assertNotEquals(AnchorFingerprint.of("alpha", "beta"), AnchorFingerprint.of("alpha", "gamma"))
         assertNotEquals(AnchorFingerprint.of("alpha", "beta"), AnchorFingerprint.of("beta", "alpha"))
         assertNotEquals(AnchorFingerprint.of("a", "bc"), AnchorFingerprint.of("ab", "c"))
+        assertNotEquals(AnchorFingerprint.of("a\\u0000b"), AnchorFingerprint.of("a", "b"))
     }
 
     @Test fun boundedBufferDropsOldest() {
@@ -44,7 +45,17 @@ class DiagnosticsTest {
         assertEquals(method, Descriptor.toMethod(Descriptor.of(method), javaClass.classLoader))
     }
 
-    @Test fun descriptorRoundTripsArrayParameters() {\n        val method = Sample::class.java.getDeclaredMethod("arrayArg", Array<String>::class.java)\n        assertEquals(method, Descriptor.toMethod(Descriptor.of(method), javaClass.classLoader))\n    }\n\n    @Test fun oversizedDescriptorIsRejected() {\n        try { Descriptor.toMethod("x".repeat(4097), javaClass.classLoader); fail("Expected rejection") }\n        catch (_: IllegalArgumentException) { }\n    }\n\n    @Test fun malformedDescriptorIsRejected() {
+    @Test fun descriptorRoundTripsArrayParameters() {
+        val method = Sample::class.java.getDeclaredMethod("arrayArg", Array<String>::class.java)
+        assertEquals(method, Descriptor.toMethod(Descriptor.of(method), javaClass.classLoader))
+    }
+
+    @Test fun oversizedDescriptorIsRejected() {
+        try { Descriptor.toMethod("x".repeat(4097), javaClass.classLoader); fail("Expected rejection") }
+        catch (_: IllegalArgumentException) { }
+    }
+
+    @Test fun malformedDescriptorIsRejected() {
         try { Descriptor.toMethod("bad", javaClass.classLoader); fail("Expected rejection") }
         catch (_: IllegalArgumentException) { }
     }
