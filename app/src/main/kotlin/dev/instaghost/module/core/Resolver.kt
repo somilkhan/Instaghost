@@ -48,7 +48,7 @@ class Resolver(private val ctx: Context, private val cl: ClassLoader) {
                     return@synchronized null
                 }
                 candidates.single().getMethodInstance(cl)?.also {
-                    cache.edit().putString(ck, Descriptor.of(it)).apply()
+                    storeDescriptor(ck, Descriptor.of(it))
                     record(key, ResolveOutcome.MATCHED, RuntimeStatus.RESOLVED, elapsed(start), candidates.size)
                 } ?: run {
                     record(key, ResolveOutcome.ERROR, RuntimeStatus.FAILED, elapsed(start), candidates.size, failureCategory="METHOD_NOT_FOUND")
@@ -59,6 +59,15 @@ class Resolver(private val ctx: Context, private val cl: ClassLoader) {
             record(key, ResolveOutcome.ERROR, RuntimeStatus.FAILED, elapsed(start), failureCategory=failureCategory(it))
             XposedBridge.log("InstaGhost: resolver failure (${failureCategory(it)})")
         }.getOrNull()
+    }
+
+    /** Persist a descriptor and enforce the version-scoped cache bound immediately. */
+    private fun storeDescriptor(key: String, descriptor: String) {
+        synchronized(bridgeLock) {
+            cache.edit().putString(key, descriptor).apply()
+            val removals = ResolverCachePolicy.keysToRemove(version, cache.all.keys)
+            if (removals.isNotEmpty()) cache.edit().also { editor -> removals.forEach(editor::remove) }.apply()
+        }
     }
 
     private fun elapsed(start: Long) = (SystemClock.elapsedRealtime() - start).coerceAtLeast(0)
