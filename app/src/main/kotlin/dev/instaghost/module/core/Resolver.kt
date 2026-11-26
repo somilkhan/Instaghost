@@ -109,10 +109,11 @@ object Descriptor {
     }
     private fun resolveType(name: String, cl: ClassLoader): Class<*> {
         primitiveTypes[name]?.let { return requireNotNull(it) }
-        val dimensions = Regex("(\\\\[\\\\])+").find(name)?.value?.length?.div(2) ?: 0
+        var componentName = name
+        var dimensions = 0
+        while (componentName.endsWith("[]")) { componentName = componentName.dropLast(2); dimensions++ }
         if (dimensions == 0) return Class.forName(name, false, cl)
         require(dimensions <= 8) { "Array dimensions exceed limit" }
-        val componentName = name.dropLast(dimensions * 2)
         val component = primitiveTypes[componentName]?.let { requireNotNull(it) } ?: Class.forName(componentName, false, cl)
         return Array.newInstance(component, *IntArray(dimensions)).javaClass
     }
