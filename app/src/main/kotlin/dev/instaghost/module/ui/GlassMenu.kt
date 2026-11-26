@@ -14,7 +14,7 @@ import android.view.WindowManager
 import android.widget.*
 import dev.instaghost.module.compatibility.CompatibilitySnapshot
 import dev.instaghost.module.compatibility.CompatibilityRegistry
-import dev.instaghost.module.core.Prefs
+import dev.instaghost.module.features.FeatureSettings
 import dev.instaghost.module.features.Feature
 import dev.instaghost.module.features.FeatureCatalog
 import dev.instaghost.module.features.FeatureDescriptor
@@ -143,12 +143,12 @@ object GlassMenu {
             addView(text(a, f.summary, 12f, t.subtext, false))
         }
         val sw = Switch(a).apply {
-            isChecked = Prefs.bool(f.key)
+            isChecked = FeatureSettings.isEnabled(f.key)
             trackTintList = android.content.res.ColorStateList.valueOf(t.track)
             thumbTintList = android.content.res.ColorStateList.valueOf(t.text)
             isEnabled = !f.key.startsWith("ghost_")
             contentDescription = if (isEnabled) f.title else "${f.title}, unavailable in this build"
-            setOnCheckedChangeListener { _, on -> Prefs.setBool(f.key, on) }
+            setOnCheckedChangeListener { _, on -> FeatureSettings.setEnabled(f.key, on) }
         }
         return LinearLayout(a).apply {
             orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL
