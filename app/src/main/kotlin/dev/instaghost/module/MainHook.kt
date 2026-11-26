@@ -24,7 +24,7 @@ class MainHook : IXposedHookLoadPackage {
                 val resolver = Resolver(app, lpparam.classLoader)
                 Features.all.forEach { f ->
                     runCatching { f.install(resolver) }
-                        .onFailure { XposedBridge.log("InstaGhost: ${f.key} failed: $it") }
+                        .onFailure { XposedBridge.log("InstaGhost: ${f.key} failed (" + dev.instaghost.module.core.failureCategory(it) + ")") }
                 }
                 resolver.close()
                 installMenuEntry()
