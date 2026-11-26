@@ -18,5 +18,5 @@ android {
 }
 dependencies {
     compileOnly("de.robv.android.xposed:api:82")   // classic API: works with LSPosed
-    implementation("org.luckypray:dexkit:2.0.2")   // finds obfuscated classes by strings; verify latest version
+    implementation("org.luckypray:dexkit:2.0.2")   // finds obfuscated classes by strings; verify latest version\n    testImplementation("junit:junit:4.13.2")
 }
