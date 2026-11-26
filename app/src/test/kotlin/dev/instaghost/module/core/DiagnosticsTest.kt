@@ -4,6 +4,12 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class DiagnosticsTest {
+    @Test fun anchorFingerprintIsStableAndSeparatesAnchorSets() {
+        assertEquals(AnchorFingerprint.of("alpha", "beta"), AnchorFingerprint.of("alpha", "beta"))
+        assertNotEquals(AnchorFingerprint.of("alpha", "beta"), AnchorFingerprint.of("alpha", "gamma"))
+        assertNotEquals(AnchorFingerprint.of("alpha", "beta"), AnchorFingerprint.of("beta", "alpha"))
+    }
+
     @Test fun boundedBufferDropsOldest() {
         val log = DiagnosticsLog(2)
         log.add(event("one"))
