@@ -43,7 +43,7 @@ object GlassMenu {
             }
         }
         card.addView(text(a, "InstaGhost", 22f, t.text, true))
-        card.addView(text(a, "Changes apply right away.", 13f, t.subtext, false).apply { setPadding(0, 0, 0, dp(a, 10)) })
+        card.addView(text(a, "Experimental scaffold. Features are unavailable until verified and implemented.", 13f, t.subtext, false).apply { setPadding(0, 0, 0, dp(a, 10)) })
 
         val scroll = ScrollView(a).apply { isVerticalScrollBarEnabled = false }
         val list = LinearLayout(a).apply { orientation = LinearLayout.VERTICAL }
@@ -66,10 +66,11 @@ object GlassMenu {
         val col = LinearLayout(a).apply {
             orientation = LinearLayout.VERTICAL
             addView(text(a, f.title, 15f, t.text, false))
-            addView(text(a, f.summary, 12f, t.subtext, false))
+            addView(text(a, f.summary + if (f.implemented) "" else "  •  Not implemented", 12f, t.subtext, false))
         }
         val sw = Switch(a).apply {
-            isChecked = Prefs.bool(f.key)
+            isChecked = Prefs.bool(f.key) && f.implemented
+            isEnabled = f.implemented
             trackTintList = android.content.res.ColorStateList.valueOf(t.track)
             thumbTintList = android.content.res.ColorStateList.valueOf(t.thumbOn)
             setOnCheckedChangeListener { _, on -> Prefs.setBool(f.key, on) }
