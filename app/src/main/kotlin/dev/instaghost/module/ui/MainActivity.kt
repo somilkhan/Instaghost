@@ -78,6 +78,8 @@ class MainActivity : Activity() {
     private fun card(block: LinearLayout.() -> Unit) = LinearLayout(this).apply {
         orientation = LinearLayout.VERTICAL
         setPadding(dp(18), dp(18), dp(18), dp(18))
+        elevation = dp(1).toFloat()
+        layoutParams = LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(10) }
         background = GradientDrawable().apply {
             setColor(panel); cornerRadius = dp(20).toFloat(); setStroke(dp(1), border)
         }
