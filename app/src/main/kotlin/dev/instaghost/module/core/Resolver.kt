@@ -6,6 +6,7 @@ import android.os.SystemClock
 import de.robv.android.xposed.XposedBridge
 import org.luckypray.dexkit.DexKitBridge
 import java.lang.reflect.Method
+import java.util.concurrent.ConcurrentHashMap
 
 /** Version-scoped discovery helper. Cached descriptors are hints and validated on read. */
 class Resolver(private val ctx: Context, private val cl: ClassLoader) {
@@ -15,6 +16,7 @@ class Resolver(private val ctx: Context, private val cl: ClassLoader) {
     private val cache = ctx.getSharedPreferences("instaghost_hooks", Context.MODE_PRIVATE)
     private val bridgeLock = Any()
     private var bridge: DexKitBridge? = null
+    private val resolvedMethods = ConcurrentHashMap<String, Method>()
 
     init {
         val inventory = ApkInventory.collect(ctx.applicationInfo)
@@ -27,9 +29,14 @@ class Resolver(private val ctx: Context, private val cl: ClassLoader) {
         if (!ResolverInputPolicy.isValid(key, anchors)) return null
         val start = SystemClock.elapsedRealtime()
         val ck = "${version}:${key}:${AnchorFingerprint.of(*anchors)}"
+        resolvedMethods[ck]?.let { method ->
+            record(key, ResolveOutcome.CACHE_HIT, RuntimeStatus.RESOLVED, elapsed(start), cacheHit=true)
+            return method
+        }
         cache.getString(ck, null)?.let { sig ->
             val cached = runCatching { Descriptor.toMethod(sig, cl) }.getOrNull()
             if (cached != null) {
+                resolvedMethods[ck] = cached
                 record(key, ResolveOutcome.CACHE_HIT, RuntimeStatus.RESOLVED, elapsed(start), cacheHit=true)
                 return cached
             }
@@ -50,6 +57,7 @@ class Resolver(private val ctx: Context, private val cl: ClassLoader) {
                     return@synchronized null
                 }
                 candidates.single().getMethodInstance(cl)?.also {
+                    resolvedMethods[ck] = it
                     storeDescriptor(ck, Descriptor.of(it))
                     record(key, ResolveOutcome.MATCHED, RuntimeStatus.RESOLVED, elapsed(start), candidates.size)
                 } ?: run {
@@ -80,6 +88,7 @@ class Resolver(private val ctx: Context, private val cl: ClassLoader) {
 
     fun close() {
         synchronized(bridgeLock) { runCatching { bridge?.close() }; bridge = null }
+        resolvedMethods.clear()
     }
 }
 
