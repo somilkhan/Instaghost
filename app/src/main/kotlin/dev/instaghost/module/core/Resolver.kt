@@ -24,7 +24,7 @@ class Resolver(private val ctx: Context, private val cl: ClassLoader) {
     fun method(key: String, vararg anchors: String): Method? {
         if (!key.matches(Regex("[a-z0-9_]{1,64}")) || anchors.isEmpty()) return null
         val anchorFingerprint = MessageDigest.getInstance("SHA-256")
-            .digest(anchors.joinToString("\\u0000").toByteArray(Charsets.UTF_8))
+            .digest(anchors.joinToString("|").toByteArray(Charsets.UTF_8))
             .take(8).joinToString("") { "%02x".format(it) }
         val ck = "$version:$key:$anchorFingerprint"
         cache.getString(ck, null)?.let { sig ->
