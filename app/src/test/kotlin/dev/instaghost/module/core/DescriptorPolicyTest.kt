@@ -22,6 +22,11 @@ class DescriptorPolicyTest {
         }
     }
 
+    @Test fun supportsJavaStyleArrayParameterNames() {
+        assertNotNull(DescriptorPolicy.parse("pkg.Type#method#int[],java.lang.String[][]"))
+        assertNull(DescriptorPolicy.parse("pkg.Type#method#int[][][][][][][][][]"))
+    }
+
     @Test fun rejectsMalformedDescriptorsAndExcessiveParameters() {
         listOf("", "a#b", "#b#", "a##", "a#bad name#", "a#b#unknown type",
             "a#b#[Q", "a#b#[[[[[[[[[[I", "a#b#Ljava.lang.String;").forEach {
