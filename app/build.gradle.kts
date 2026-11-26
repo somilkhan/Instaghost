@@ -17,7 +17,6 @@ android {
     kotlinOptions { jvmTarget = "17" }
 }
 dependencies {
-    compileOnly("de.robv.android.xposed:api:82")
-    implementation("org.luckypray:dexkit:2.0.2")
-    testImplementation("junit:junit:4.13.2")
+    compileOnly("de.robv.android.xposed:api:82")   // classic API: works with LSPosed
+    implementation("org.luckypray:dexkit:2.0.2")   // finds obfuscated classes by strings; verify latest version
 }
