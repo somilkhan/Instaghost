@@ -20,20 +20,9 @@ object GlassMenu {
     private fun dp(a: Activity, v: Int) = (v * a.resources.displayMetrics.density).toInt()
 
     fun show(a: Activity) {
+        if (a.isFinishing || (Build.VERSION.SDK_INT >= 17 && a.isDestroyed)) return
         val t = Theme(a)
         val d = Dialog(a)
-        d.window?.apply {
-            setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
-            setGravity(Gravity.BOTTOM)
-            setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
-            if (Build.VERSION.SDK_INT >= 31) { // real blur of what is behind the dialog
-                addFlags(WindowManager.LayoutParams.FLAG_BLUR_BEHIND)
-                attributes = attributes.apply { blurBehindRadius = 60 }
-                setBackgroundBlurRadius(80)
-            }
-            setDimAmount(if (t.dark) 0.35f else 0.15f)
-        }
-
         val card = LinearLayout(a).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(dp(a, 20), dp(a, 18), dp(a, 20), dp(a, 22))
@@ -56,7 +45,19 @@ object GlassMenu {
         scroll.addView(list)
         card.addView(scroll, LinearLayout.LayoutParams(-1, dp(a, 380)))
         d.setContentView(card)
+        d.setCanceledOnTouchOutside(true)
         d.show()
+        d.window?.apply {
+            setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+            setGravity(Gravity.BOTTOM)
+            setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+            if (Build.VERSION.SDK_INT >= 31) {
+                addFlags(WindowManager.LayoutParams.FLAG_BLUR_BEHIND)
+                attributes = attributes.apply { blurBehindRadius = 60 }
+                setBackgroundBlurRadius(80)
+            }
+            setDimAmount(if (t.dark) 0.35f else 0.15f)
+        }
     }
 
     private fun row(a: Activity, t: Theme, f: Feature): View {
@@ -73,7 +74,7 @@ object GlassMenu {
             isEnabled = f.implemented
             trackTintList = android.content.res.ColorStateList.valueOf(t.track)
             thumbTintList = android.content.res.ColorStateList.valueOf(t.thumbOn)
-            setOnCheckedChangeListener { _, on -> Prefs.setBool(f.key, on) }
+            setOnCheckedChangeListener { _, on -> if (f.implemented) Prefs.setBool(f.key, on) }
         }
         return LinearLayout(a).apply {
             orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL
