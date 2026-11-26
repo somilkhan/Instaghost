@@ -26,7 +26,7 @@ object GlassMenu {
             setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
             setGravity(Gravity.BOTTOM)
             setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
-            if (Build.VERSION.SDK_INT >= 31) { // real blur of what is behind the dialog
+            if (Build.VERSION.SDK_INT >= 31) {
                 addFlags(WindowManager.LayoutParams.FLAG_BLUR_BEHIND)
                 attributes = attributes.apply { blurBehindRadius = 60 }
                 setBackgroundBlurRadius(80)
@@ -45,16 +45,45 @@ object GlassMenu {
         card.addView(text(a, "InstaGhost", 22f, t.text, true))
         card.addView(text(a, "Changes apply right away.", 13f, t.subtext, false).apply { setPadding(0, 0, 0, dp(a, 10)) })
 
+        val search = EditText(a).apply {
+            hint = "Search features"
+            singleLine = true
+            textSize = 14f
+            setTextColor(t.text)
+            setHintTextColor(t.subtext)
+            setPadding(dp(a, 12), dp(a, 8), dp(a, 12), dp(a, 8))
+            background = GradientDrawable().apply {
+                setColor(t.glass)
+                cornerRadius = dp(a, 14).toFloat()
+                setStroke(dp(a, 1), t.border)
+            }
+        }
+        card.addView(search, LinearLayout.LayoutParams(-1, dp(a, 46)).apply { bottomMargin = dp(a, 12) })
+
         val scroll = ScrollView(a).apply { isVerticalScrollBarEnabled = false }
         val list = LinearLayout(a).apply { orientation = LinearLayout.VERTICAL }
-        Feature.Group.values().forEach { g ->
-            val items = Features.all.filter { it.group == g }
-            if (items.isEmpty()) return@forEach
-            list.addView(text(a, g.label.uppercase(), 11f, t.subtext, true).apply { setPadding(0, dp(a, 14), 0, dp(a, 4)) })
-            items.forEach { list.addView(row(a, t, it)) }
-        }
         scroll.addView(list)
         card.addView(scroll, LinearLayout.LayoutParams(-1, dp(a, 380)))
+
+        fun render(query: String) {
+            list.removeAllViews()
+            val q = query.trim().lowercase()
+            var count = 0
+            Feature.Group.values().forEach { g ->
+                val items = Features.all.filter { it.group == g && (q.isEmpty() || it.title.lowercase().contains(q) || it.summary.lowercase().contains(q) || it.key.lowercase().contains(q) || g.label.lowercase().contains(q)) }
+                if (items.isEmpty()) return@forEach
+                count += items.size
+                list.addView(text(a, g.label.uppercase(), 11f, t.subtext, true).apply { setPadding(0, dp(a, 14), 0, dp(a, 4)) })
+                items.forEach { list.addView(row(a, t, it)) }
+            }
+            if (count == 0) list.addView(text(a, "No features found.", 14f, t.subtext, false).apply { setPadding(0, dp(a, 20), 0, dp(a, 12)) })
+        }
+        render("")
+        search.addTextChangedListener(object : android.text.TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) = Unit
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) { render(s?.toString().orEmpty()) }
+            override fun afterTextChanged(s: android.text.Editable?) = Unit
+        })
         d.setContentView(card)
         d.show()
     }
