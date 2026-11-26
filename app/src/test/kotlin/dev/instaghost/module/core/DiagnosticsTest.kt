@@ -31,6 +31,17 @@ class DiagnosticsTest {
         assertEquals(listOf("two", "three"), log.snapshot().map { it.featureKey })
     }
 
+    @Test fun concurrentAddsKeepBufferBounded() {
+        val log = DiagnosticsLog(25)
+        val workers = (0 until 8).map { worker ->
+            Thread {
+                repeat(100) { index -> log.add(event("w${worker}_${index}")) }
+            }.apply { start() }
+        }
+        workers.forEach { it.join() }
+        assertTrue(log.snapshot().size <= 25)
+    }
+
     @Test fun clearRemovesEvents() {
         val log = DiagnosticsLog()
         log.add(event("feature"))
