@@ -44,6 +44,21 @@ class DiagnosticsTest {
 
     private class Sample { fun combine(value: Int, text: String) = value.toString() + text }
 
+    @Test fun eventRejectsNegativeCountsAndElapsed() {
+        try {
+            DiagnosticEvent("feature", 1L, RuntimeStatus.FAILED, ResolveOutcome.ERROR, candidateCount = -1)
+            fail("Expected candidate count validation")
+        } catch (_: IllegalArgumentException) { }
+        try {
+            DiagnosticEvent("feature", 1L, RuntimeStatus.FAILED, ResolveOutcome.ERROR, elapsedMs = -1)
+            fail("Expected elapsed validation")
+        } catch (_: IllegalArgumentException) { }
+    }
+
+    @Test fun linkageErrorsAreSanitized() {
+        assertEquals("LINKAGE_ERROR", failureCategory(LinkageError("private detail")))
+    }
+
     private fun event(key: String) = DiagnosticEvent(
         featureKey = key, appVersionCode = 1L,
         status = RuntimeStatus.UNSUPPORTED, outcome = ResolveOutcome.NO_MATCH
