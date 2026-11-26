@@ -105,6 +105,7 @@ object GlassMenu {
                 diagnostics.addView(text(a, "${feature.title}: ${status.state.name.lowercase().replace('_', ' ')}", 12f, t.text, false).apply {
                     setPadding(0, dp(a, 5), 0, 0)
                 })
+                if (status.detail.isNotBlank()) diagnostics.addView(text(a, status.detail, 11f, t.subtext, false).apply { setPadding(0, dp(a, 2), 0, 0) })
             }
         }
         renderDiagnostics()
@@ -145,6 +146,8 @@ object GlassMenu {
             isChecked = Prefs.bool(f.key)
             trackTintList = android.content.res.ColorStateList.valueOf(t.track)
             thumbTintList = android.content.res.ColorStateList.valueOf(t.text)
+            isEnabled = !f.key.startsWith("ghost_")
+            contentDescription = if (isEnabled) f.title else "${f.title}, unavailable in this build"
             setOnCheckedChangeListener { _, on -> Prefs.setBool(f.key, on) }
         }
         return LinearLayout(a).apply {
