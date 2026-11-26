@@ -16,6 +16,8 @@ import dev.instaghost.module.compatibility.CompatibilitySnapshot
 import dev.instaghost.module.compatibility.CompatibilityRegistry
 import dev.instaghost.module.core.Prefs
 import dev.instaghost.module.features.Feature
+import dev.instaghost.module.features.FeatureCatalog
+import dev.instaghost.module.features.FeatureDescriptor
 import dev.instaghost.module.features.FeatureInstallRecorder
 import dev.instaghost.module.features.Features
 
@@ -85,7 +87,7 @@ object GlassMenu {
         fun renderDiagnostics() {
             diagnostics.removeAllViews()
             val recorder = FeatureInstallRecorder(a)
-            val counts = Features.all.mapNotNull { recorder.status(it.key) }
+            val counts = FeatureCatalog.entries.mapNotNull { recorder.status(it.key) }
                 .groupingBy { it.state }.eachCount()
             val attempted = counts[dev.instaghost.module.features.FeatureStatus.State.ATTEMPTED] ?: 0
             val failed = counts[dev.instaghost.module.features.FeatureStatus.State.FAILED] ?: 0
@@ -98,7 +100,7 @@ object GlassMenu {
             }.onFailure {
                 diagnostics.addView(text(a, "Host snapshot unavailable", 12f, t.subtext, false))
             }
-            Features.all.forEach { feature ->
+            FeatureCatalog.entries.forEach { feature ->
                 val status = recorder.status(feature.key) ?: return@forEach
                 diagnostics.addView(text(a, "${feature.title}: ${status.state.name.lowercase().replace('_', ' ')}", 12f, t.text, false).apply {
                     setPadding(0, dp(a, 5), 0, 0)
@@ -112,7 +114,7 @@ object GlassMenu {
             val q = query.trim().lowercase()
             var count = 0
             Feature.Group.values().forEach { g ->
-                val items = Features.all.filter { it.group == g && (q.isEmpty() || it.title.lowercase().contains(q) || it.summary.lowercase().contains(q) || it.key.lowercase().contains(q) || g.label.lowercase().contains(q)) }
+                val items = FeatureCatalog.entries.filter { it.group == g && (q.isEmpty() || it.title.lowercase().contains(q) || it.summary.lowercase().contains(q) || it.key.lowercase().contains(q) || g.label.lowercase().contains(q)) }
                 if (items.isEmpty()) return@forEach
                 count += items.size
                 list.addView(text(a, g.label.uppercase(), 11f, t.subtext, true).apply { setPadding(0, dp(a, 14), 0, dp(a, 4)) })
@@ -130,7 +132,7 @@ object GlassMenu {
         d.show()
     }
 
-    private fun row(a: Activity, t: Theme, f: Feature): View {
+    private fun row(a: Activity, t: Theme, f: FeatureDescriptor): View {
         val icon = ImageView(a).apply {
             setImageDrawable(LineIcon(f.group.name.lowercase().let { if (it == "ghost") "ghost" else if (it == "privacy") "shield" else if (it == "download") "download" else "feed" }, t.text))
         }
