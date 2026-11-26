@@ -52,8 +52,12 @@ class MainActivity : Activity() {
                 orientation=LinearLayout.VERTICAL; gravity=Gravity.CENTER
                 setPadding(dp(12),dp(7),dp(12),dp(5))
                 background=if(i==selected) GradientDrawable().apply { setColor(if(dark) Color.argb(40,255,255,255) else Color.argb(18,0,0,0)); cornerRadius=dp(22).toFloat() } else null
-                addView(TextView(this@MainActivity).apply { text=glyph[i]; textSize=21f; gravity=Gravity.CENTER; setTextColor(textColor) })
-                addView(TextView(this@MainActivity).apply { text=l; textSize=11f; gravity=Gravity.CENTER; setTextColor(if(i==selected) textColor else muted); typeface=if(i==selected) Typeface.DEFAULT_BOLD else Typeface.DEFAULT })
+                isClickable = true
+                isFocusable = true
+                isSelected = i == selected
+                contentDescription = l + " tab" + (if (i == selected) ", selected" else "")
+                addView(TextView(this@MainActivity).apply { text=glyph[i]; textSize=21f; gravity=Gravity.CENTER; setTextColor(textColor); importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO })
+                addView(TextView(this@MainActivity).apply { text=l; textSize=11f; gravity=Gravity.CENTER; setTextColor(if(i==selected) textColor else muted); typeface=if(i==selected) Typeface.DEFAULT_BOLD else Typeface.DEFAULT; importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO })
                 setOnClickListener { selected=i; render() }
             },LinearLayout.LayoutParams(0,-2,1f))
         }
