@@ -7,9 +7,9 @@ import android.content.SharedPreferences
  * Module preferences are stored in the target app's process. Keys exposed here
  * are intentionally allow-listed to avoid accidental storage of arbitrary data.
  */
-object Prefs {
+object PreferenceKey {\n    internal val allowed = setOf("ui_diagnostics_enabled", "ui_intro_seen")\n    fun isAllowed(key: String) = key in allowed\n}\n\nobject Prefs {
     private const val FILE = "instaghost"
-    private val allowed = setOf("ui_diagnostics_enabled", "ui_intro_seen")
+    private val allowed = PreferenceKey.allowed
     @Volatile private var sp: SharedPreferences? = null
 
     fun init(ctx: Context) {
@@ -20,7 +20,7 @@ object Prefs {
         checkNotNull(sp) { "Prefs.init must be called before preferences are accessed" }
 
     fun bool(key: String, def: Boolean = false): Boolean {
-        require(key in allowed) { "Unsupported preference key" }
+        require(PreferenceKey.isAllowed(key)) { "Unsupported preference key" }
         return store().getBoolean(key, def)
     }
 
