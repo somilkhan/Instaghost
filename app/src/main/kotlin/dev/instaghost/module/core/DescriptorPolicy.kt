@@ -10,15 +10,21 @@ internal object DescriptorPolicy {
         val pieces = signature.split("#", limit = 3)
         if (pieces.size != 3) return null
         val (className, methodName, parameterText) = pieces
-        if (!validName(className) || !validName(methodName, allowDollar = false)) return null
+        if (!validClassName(className) || !validMethodName(methodName)) return null
         val parameters = if (parameterText.isEmpty()) emptyList() else parameterText.split(",")
         if (parameters.size > MAX_PARAMETERS || parameters.any { !validType(it) }) return null
         return Parts(className, methodName, parameters)
     }
 
-    private fun validName(value: String, allowDollar: Boolean = true): Boolean =
+    private fun validClassName(value: String): Boolean =
+        value.isNotEmpty() && value.length <= 512 && value.split(".").all(::validIdentifier)
+
+    private fun validMethodName(value: String): Boolean = validIdentifier(value)
+
+    private fun validIdentifier(value: String): Boolean =
         value.isNotEmpty() && value.length <= 512 &&
-            value.all { it.isLetterOrDigit() || it == '_' || it == '.' || (allowDollar && it == '$') }
+            (value.first().isLetter() || value.first() == '_' || value.first() == '$') &&
+            value.all { it.isLetterOrDigit() || it == '_' || it == '$' }
 
     private fun validType(value: String): Boolean {
         if (value.isEmpty() || value.length > 512) return false
@@ -28,10 +34,11 @@ internal object DescriptorPolicy {
             if (dimensions > 8) return false
             val component = value.drop(dimensions)
             if (component.length == 1) return component in "ZBCSIJFD"
-            if (component.startsWith("L") && component.endsWith(";")) return validName(component.drop(1).dropLast(1))
+            if (component.startsWith("L") && component.endsWith(";"))
+                return validClassName(component.drop(1).dropLast(1))
             return false
         }
-        return validName(value)
+        return validClassName(value)
     }
 
     data class Parts(val className: String, val methodName: String, val parameters: List<String>)
