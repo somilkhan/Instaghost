@@ -19,5 +19,6 @@ This project is experimental. Planned feature entries are metadata only, are dis
 - [CI verification](docs/CI.md)
 - [Contributing](CONTRIBUTING.md)
 - [Security policy](SECURITY.md)
+- [Security design and threat model](docs/SECURITY_DESIGN.md)
 
 See PLAN.md for the roadmap and DISCLAIMER.md before use. No version is marked supported until device validation is recorded.
