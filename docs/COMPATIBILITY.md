@@ -1,6 +1,6 @@
 # Compatibility validation
 
-No Instagram release is considered supported until a test record is completed.
+No Instagram release is considered supported until a test record is completed. APK inventory logging reports the base APK and installed split count, but DexKit scanning of split APK DEX content is not implemented or verified.
 
 | Instagram version name | version code | Android version | device | module commit | smoke test | notes |
 |---|---:|---|---|---|---|---|
