@@ -8,6 +8,7 @@ class DiagnosticsTest {
         assertEquals(AnchorFingerprint.of("alpha", "beta"), AnchorFingerprint.of("alpha", "beta"))
         assertNotEquals(AnchorFingerprint.of("alpha", "beta"), AnchorFingerprint.of("alpha", "gamma"))
         assertNotEquals(AnchorFingerprint.of("alpha", "beta"), AnchorFingerprint.of("beta", "alpha"))
+        assertNotEquals(AnchorFingerprint.of("a", "bc"), AnchorFingerprint.of("ab", "c"))
     }
 
     @Test fun boundedBufferDropsOldest() {
