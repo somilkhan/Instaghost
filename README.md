@@ -17,5 +17,7 @@ This project is experimental. Feature discovery anchors are placeholders and fea
 - [Compatibility matrix](docs/COMPATIBILITY.md)
 - [Release checklist](docs/RELEASE_CHECKLIST.md)
 - [CI verification](docs/CI.md)
+- [Contributing](CONTRIBUTING.md)
+- [Security policy](SECURITY.md)
 
 See PLAN.md for the roadmap and DISCLAIMER.md before use. No version is marked supported until device validation is recorded.
