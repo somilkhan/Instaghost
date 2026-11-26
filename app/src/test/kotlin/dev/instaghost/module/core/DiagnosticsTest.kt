@@ -4,6 +4,12 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class DiagnosticsTest {
+    @Test fun fingerprintOutputHasFixedCompactShape() {
+        val fingerprint = AnchorFingerprint.of("anchor")
+        assertEquals(16, fingerprint.length)
+        assertTrue(fingerprint.all { it in "0123456789abcdef" })
+    }
+
     @Test fun missingClassFailuresAreSanitized() {
         assertEquals("CLASS_NOT_FOUND", failureCategory(ClassNotFoundException("private detail")))
         assertEquals("CLASS_NOT_FOUND", failureCategory(NoClassDefFoundError("private detail")))
