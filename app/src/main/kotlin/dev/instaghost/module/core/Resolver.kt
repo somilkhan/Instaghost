@@ -38,7 +38,7 @@ object Descriptor {
 
     fun toMethod(sig: String, cl: ClassLoader): Method {
         val (c, n, p) = sig.split("#", limit = 3)
-        val params = if (p.isEmpty()) emptyArray() else p.split(",").map { Class.forName(it, false, cl) }.toTypedArray()
+        val params = if (p.isEmpty()) emptyArray() else p.split(",").map { name ->\n            when (name) {\n                "boolean" -> Boolean::class.javaPrimitiveType!!\n                "byte" -> Byte::class.javaPrimitiveType!!\n                "char" -> Char::class.javaPrimitiveType!!\n                "short" -> Short::class.javaPrimitiveType!!\n                "int" -> Int::class.javaPrimitiveType!!\n                "long" -> Long::class.javaPrimitiveType!!\n                "float" -> Float::class.javaPrimitiveType!!\n                "double" -> Double::class.javaPrimitiveType!!\n                else -> Class.forName(name, false, cl)\n            }\n        }.toTypedArray()
         return Class.forName(c, false, cl).getDeclaredMethod(n, *params).also { it.isAccessible = true }
     }
 }
