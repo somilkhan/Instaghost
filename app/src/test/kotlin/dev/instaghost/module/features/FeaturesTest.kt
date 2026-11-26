@@ -13,7 +13,13 @@ class FeaturesTest {
         assertTrue(keys.all { it.matches(Regex("[a-z0-9_]{1,64}")) })
     }
 
-    @Test fun featureRegistryKeysArePreferenceAllowlisted() {\n        Features.all.forEach { feature ->\n            assertTrue("${feature.key} should be allowlisted", PreferenceKey.isAllowed(feature.key))\n        }\n    }\n\n    @Test fun scaffoldFeaturesAreAllDisabledAndMetadataOnly() {
+    @Test fun featureRegistryKeysArePreferenceAllowlisted() {
+        Features.all.forEach { feature ->
+            assertTrue("${feature.key} should be allowlisted", PreferenceKey.isAllowed(feature.key))
+        }
+    }
+
+    @Test fun scaffoldFeaturesAreAllDisabledAndMetadataOnly() {
         assertTrue(Features.all.isNotEmpty())
         Features.all.forEach { feature ->
             assertFalse("${feature.key} must remain unavailable", feature.implemented)
