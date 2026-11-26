@@ -32,6 +32,18 @@ class DiagnosticsTest {
         assertEquals("UNEXPECTED_ERROR", failureCategory(IllegalStateException("private text")))
     }
 
+    @Test fun descriptorRoundTripsPrimitiveParameters() {
+        val method = Sample::class.java.getDeclaredMethod("combine", Int::class.javaPrimitiveType, String::class.java)
+        assertEquals(method, Descriptor.toMethod(Descriptor.of(method), javaClass.classLoader))
+    }
+
+    @Test fun malformedDescriptorIsRejected() {
+        try { Descriptor.toMethod("bad", javaClass.classLoader); fail("Expected rejection") }
+        catch (_: IllegalArgumentException) { }
+    }
+
+    private class Sample { fun combine(value: Int, text: String) = value.toString() + text }
+
     private fun event(key: String) = DiagnosticEvent(
         featureKey = key, appVersionCode = 1L,
         status = RuntimeStatus.UNSUPPORTED, outcome = ResolveOutcome.NO_MATCH
