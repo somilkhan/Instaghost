@@ -4,14 +4,14 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class PrefsKeyPolicyTest {
-    @Test fun allowlistIncludesOnlyExplicitKeys() {
-        val source = Prefs::class.java.declaredFields.map { it.name }
-        assertTrue(source.contains("allowed"))
+    @Test fun knownKeysAreAllowed() {
+        assertTrue(PreferenceKey.isAllowed("ui_diagnostics_enabled"))
+        assertTrue(PreferenceKey.isAllowed("ui_intro_seen"))
     }
 
-    @Test fun accessRequiresInitialization() {
-        // Access is guarded by an explicit initialization check, preventing silent use.
-        val source = Prefs::class.java.declaredMethods.map { it.name }
-        assertTrue(source.contains("store"))
+    @Test fun arbitraryAndSensitiveKeysAreRejected() {
+        assertFalse(PreferenceKey.isAllowed("username"))
+        assertFalse(PreferenceKey.isAllowed("session_token"))
+        assertFalse(PreferenceKey.isAllowed("unknown"))
     }
 }
