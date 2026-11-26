@@ -30,9 +30,25 @@ jobs:
         run: gradle :app:lintDebug --no-daemon
       - name: Build debug APK
         run: gradle :app:assembleDebug --no-daemon
+      - name: Generate APK checksum
+        if: success()
+        run: |
+          cd app/build/outputs/apk/debug
+          sha256sum *.apk > SHA256SUMS.txt
       - uses: actions/upload-artifact@v4
         if: success()
         with:
           name: instaghost-debug
-          path: app/build/outputs/apk/debug/*.apk
+          path: |
+            app/build/outputs/apk/debug/*.apk
+            app/build/outputs/apk/debug/SHA256SUMS.txt
           if-no-files-found: error
+      - name: Upload verification reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: instaghost-verification-reports
+          path: |
+            app/build/reports/tests/testDebugUnitTest/
+            app/build/reports/lint-results-debug.html
+          if-no-files-found: warn
