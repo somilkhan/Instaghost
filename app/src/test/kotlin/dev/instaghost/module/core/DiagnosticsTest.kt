@@ -4,6 +4,16 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class DiagnosticsTest {
+    @Test fun missingClassFailuresAreSanitized() {
+        assertEquals("CLASS_NOT_FOUND", failureCategory(ClassNotFoundException("private detail")))
+        assertEquals("CLASS_NOT_FOUND", failureCategory(NoClassDefFoundError("private detail")))
+    }
+
+    @Test fun diagnosticCapacityMustBePositive() {
+        try { DiagnosticsLog(0); fail("Expected capacity validation") }
+        catch (_: IllegalArgumentException) { }
+    }
+
     @Test fun anchorFingerprintIsStableAndSeparatesAnchorSets() {
         assertEquals(AnchorFingerprint.of("alpha", "beta"), AnchorFingerprint.of("alpha", "beta"))
         assertNotEquals(AnchorFingerprint.of("alpha", "beta"), AnchorFingerprint.of("alpha", "gamma"))
