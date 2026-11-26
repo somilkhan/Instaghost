@@ -27,7 +27,8 @@ class MainHook : IXposedHookLoadPackage {
                         .onFailure { XposedBridge.log("InstaGhost: ${f.key} failed (" + dev.instaghost.module.core.failureCategory(it) + ")") }
                 }
                 resolver.close()
-                installMenuEntry()
+                runCatching { installMenuEntry() }
+                    .onFailure { XposedBridge.log("InstaGhost: menu initialization failed (" + dev.instaghost.module.core.failureCategory(it) + ")") }
             }
         })
     }
