@@ -1,55 +1,48 @@
 # InstaGhost: build plan
 
-Goal: an open-source LSPosed module for Instagram, in the spirit of InstaEclipse.
-Design: monochrome, liquid glass. No accent colors.
+Goal: an experimental, transparent LSPosed companion/module for Instagram.
+Design: monochrome, adaptive, accessible, and privacy-first.
 
-## Decisions (made by the lead)
-- Name: InstaGhost. Package: dev.instaghost.module.
-- Framework: classic Xposed API (works with LSPosed). Add a modern-API build later.
-- Language: Kotlin. UI: plain Views drawn in code (no module resources needed inside Instagram).
-- Hook finding: DexKit string anchors, cached per Instagram version. No hardcoded class names.
-- Settings live inside Instagram. Long-press the search tab to open the menu.
-- piko: use it as a map of WHAT to hook (class and method targets), not as code to copy.
-  piko patches bytecode at build time. InstaGhost hooks at runtime. Check piko's license before copying anything.
+## Decisions
+- Package: `dev.instaghost.module`.
+- Framework: classic Xposed API, with LSPosed as the target environment.
+- Language: Kotlin. Module UI uses Android Views.
+- Runtime target discovery: DexKit, guarded by strict ambiguity checks and version-scoped cache invalidation.
+- User-facing settings should be clearly labelled as experimental; no feature should be advertised as active before implementation and device validation.
+- Prefer documented APIs and observable, user-controlled behavior. Do not implement covert alteration or suppression of other users' activity/privacy signals or security protections.
 
 ## Design system
-- Colors: black, white, grays only. Dark and light follow the phone.
-- Glass: translucent gradient card, 1dp light border, real blur on Android 12+, soft fallback below.
-- Shapes: 28dp corners on sheets. Bottom sheet for the menu.
-- Icons: thin 4px line icons (ghost, shield, download, feed). App icon: ring and dot on near-black.
-- Type: system font. Bold titles, gray summaries.
+- Grayscale only, with system light/dark theme support.
+- Glass effects must have a legible non-blur fallback.
+- Minimum touch target 48dp; content must support font scaling and screen readers.
+- Avoid animation as the only way to communicate state.
+- Provide clear loading, disabled, unsupported, and failure states.
 
-## Feature list
-Ghost: read receipts, typing, story views, screenshot alerts.
-Feed: ads, suggested people, double tap like.
-Privacy: clean tracking links.
-Next: download media (photo, video, audio only), DM tools, backup and restore, translations, log viewer.
+## Engineering priorities
+1. Stabilize diagnostics, resolver safety, and user-visible module status.
+2. Establish a reproducible compatibility and manual device-test process.
+3. Improve companion UI accessibility and settings persistence.
+4. Implement only reviewed, privacy-respecting functionality with focused tests.
+5. Establish release signing, reproducible release notes, and artifact verification.
 
-## Team (you are the CEO)
-| Agent | Owns | First task |
-|---|---|---|
-| Lead (me) | Plan, reviews, release | Approve the architecture |
-| Reverse engineer | jadx, anchors | Fill every TODO_anchor in Features.kt |
-| Hook engineer | features | Make Ghost features pass on 2 Instagram versions |
-| UI engineer | glass menu, icons | Polish blur, add haptics, test small screens |
-| Downloader | media features | Download share target and audio only |
-| QA | device tests | Test matrix: 2 Instagram versions x 2 Android versions |
-| Release and docs | README, CI, translations | GitHub Actions build, README, DISCLAIMER |
+## Compatibility validation
+A compatibility claim requires recording:
+- Instagram version and package build identifier.
+- Android version, device model, and LSPosed version.
+- Feature-specific test steps and expected/actual results.
+- Resolver outcome and relevant sanitized diagnostic category.
+- Date tested and regression result.
 
-## Hook discovery (the hard part)
-1. Download Instagram from APKMirror. Open it in jadx.
-2. Search the feature's behavior (for example "typing" or "mark seen") and find the method that sends it.
-3. Pick a stable string inside that method. Put it in the feature's anchors.
-4. Run. Check LSPosed logs for "InstaGhost: no target".
-5. Repeat on a newer Instagram. If it still matches, the anchor is good.
+CI success is not device compatibility evidence.
 
-## Milestones
-1. Builds, loads, menu opens. (this scaffold)
-2. Ghost features work on one Instagram version.
-3. Feed features and link cleaning.
-4. Downloads.
-5. Second Instagram version, modern API build, first release.
+## Release gates
+- CI unit tests, lint, and debug assembly pass.
+- No unresolved or ambiguous resolver targets are accepted.
+- Diagnostics are bounded and sanitized, and must not collect message contents, credentials, or personal identifiers.
+- APK provenance and SHA-256 checksum are recorded.
+- Release notes list known limitations and only verified compatibility claims.
 
-## Known limits
-- Anchors are placeholders until checked against a real Instagram APK.
-- Not built or tested here. Open in Android Studio and sync.
+## Explicitly out of scope
+- Covert tampering with read receipts, typing/presence, story-view signals, screenshot notifications, or other privacy/security signals.
+- Collection, export, or logging of private Instagram content or session credentials.
+- Declaring features supported based only on static analysis or CI.
