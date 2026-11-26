@@ -1,0 +1,58 @@
+name: Bug report
+description: Report a reproducible problem without exposing private Instagram data.
+title: "[Bug]: "
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: "Never include messages, usernames, account IDs, session data, cookies, tokens, private URLs, or unredacted screenshots."
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+    validations:
+      required: true
+  - type: input
+    id: module-version
+    attributes:
+      label: InstaGhost version or commit
+    validations:
+      required: true
+  - type: input
+    id: instagram-version
+    attributes:
+      label: Instagram version (version name/code if known)
+    validations:
+      required: false
+  - type: input
+    id: android
+    attributes:
+      label: Android version and device model
+    validations:
+      required: false
+  - type: input
+    id: framework
+    attributes:
+      label: LSPosed version
+    validations:
+      required: false
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction steps
+      description: Non-sensitive steps only. Do not paste account content.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected vs actual behavior
+    validations:
+      required: true
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Sanitized diagnostics
+      description: Allowlisted diagnostics only. Remove identifiers, content, links and raw stack traces.
+    validations:
+      required: false
