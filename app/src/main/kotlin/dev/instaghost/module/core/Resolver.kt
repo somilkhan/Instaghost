@@ -12,6 +12,7 @@ class Resolver(private val ctx: Context, private val cl: ClassLoader) {
         if (Build.VERSION.SDK_INT >= 28) info.longVersionCode else info.versionCode.toLong()
     }
     private val cache = ctx.getSharedPreferences("instaghost_hooks", Context.MODE_PRIVATE)
+    private val bridgeLock = Any()
     private var bridge: DexKitBridge? = null
 
     init {
@@ -19,30 +20,35 @@ class Resolver(private val ctx: Context, private val cl: ClassLoader) {
         if (stale.isNotEmpty()) cache.edit().also { editor -> stale.forEach(editor::remove) }.apply()
     }
 
-
     fun method(key: String, vararg anchors: String): Method? {
-        if (!key.matches(Regex("[a-z0-9_]{1,64}")) || anchors.isEmpty()) return null
-        val anchorFingerprint = AnchorFingerprint.of(*anchors)
-        val ck = "$version:$key:$anchorFingerprint"
+        if (!key.matches(Regex("[a-z0-9_]{1,64}")) || anchors.isEmpty() || anchors.any { it.isBlank() }) return null
+        val ck = "$version:$key:${AnchorFingerprint.of(*anchors)}"
         cache.getString(ck, null)?.let { sig ->
             val cached = runCatching { Descriptor.toMethod(sig, cl) }.getOrNull()
             if (cached != null) return cached
             cache.edit().remove(ck).apply()
         }
         return runCatching {
-            val b = bridge ?: run {
-                System.loadLibrary("dexkit")
-                DexKitBridge.create(ctx.applicationInfo.sourceDir).also { bridge = it }
-            }
-            val candidates = b.findMethod { matcher { usingStrings(*anchors) } }
-            if (candidates.size != 1) return@runCatching null
-            candidates.single().getMethodInstance(cl)?.also {
-                cache.edit().putString(ck, Descriptor.of(it)).apply()
+            synchronized(bridgeLock) {
+                val b = bridge ?: run {
+                    System.loadLibrary("dexkit")
+                    DexKitBridge.create(ctx.applicationInfo.sourceDir).also { bridge = it }
+                }
+                val candidates = b.findMethod { matcher { usingStrings(*anchors) } }
+                if (candidates.size != 1) return@synchronized null
+                candidates.single().getMethodInstance(cl)?.also {
+                    cache.edit().putString(ck, Descriptor.of(it)).apply()
+                }
             }
         }.onFailure { XposedBridge.log("InstaGhost: resolver failure (${failureCategory(it)})") }.getOrNull()
     }
 
-    fun close() { runCatching { bridge?.close() }; bridge = null }
+    fun close() {
+        synchronized(bridgeLock) {
+            runCatching { bridge?.close() }
+            bridge = null
+        }
+    }
 }
 
 object Descriptor {
