@@ -39,7 +39,7 @@
 - [ ] Implement S4 confirmation only where spec calls for it.
 - [ ] Implement S5 status/log view with redaction and clear-log action.
 - [ ] Implement S6 About and disclaimer.
-- [ ] Follow spec tokens, motion, layouts, accessibility, and copy.
+- [ ] Follow spec tokens, motion, layouts, accessibility, and copy.\n- [ ] Review feature development contract and diagnostics privacy docs before implementing new hooks.
 - [ ] Test TalkBack, 130% font scaling, reduced motion, narrow phones, tablet/fold, and landscape.
 
 ## Phase 4: CI and compatibility
