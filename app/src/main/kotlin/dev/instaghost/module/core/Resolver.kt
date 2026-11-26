@@ -22,7 +22,7 @@ class Resolver(private val ctx: Context, private val cl: ClassLoader) {
 
     fun method(key: String, vararg anchors: String): Method? {
         if (!key.matches(Regex("[a-z0-9_]{1,64}")) || anchors.isEmpty()) return null
-        val anchorFingerprint = AnchorFingerprint.of(anchors)
+        val anchorFingerprint = AnchorFingerprint.of(*anchors)
         val ck = "$version:$key:$anchorFingerprint"
         cache.getString(ck, null)?.let { sig ->
             val cached = runCatching { Descriptor.toMethod(sig, cl) }.getOrNull()
