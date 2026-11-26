@@ -27,6 +27,7 @@
 
 ## Phase 2: Safe feature slice
 - [ ] Implement and test non-sensitive UI/feed improvements first, with user-controlled preferences.
+- [x] Prevent placeholder features from appearing operational: planned switches are disabled and hook registration skips unimplemented features.
 - [ ] Do not publish reverse-engineered target strings for covertly suppressing read, presence, story-view, or screenshot-notification signals.
 - [ ] Require an APK/device validation record before marking any feature as Working.
 - [ ] Maintain feature-level kill switches and rollback paths.
