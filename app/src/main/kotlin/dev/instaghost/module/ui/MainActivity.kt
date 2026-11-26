@@ -135,7 +135,7 @@ class MainActivity : Activity() {
             appendLine("Runtime bridge: not connected")
             appendLine("Feature hooks: unverified")
             appendLine("Live Instagram diagnostics: unavailable")
-            appendLine("Report scope: companion app only")\n            appendLine()\n            appendLine(dev.instaghost.module.core.DiagnosticsReport.format(dev.instaghost.module.core.RuntimeDiagnostics.log.snapshot()))
+            appendLine("Report scope: companion app only")\n            appendLine()\n            appendLine("No live Instagram runtime data is attached.")
         }
     }
     private fun settings(p:LinearLayout) {
