@@ -43,7 +43,10 @@ object GlassMenu {
             items.forEach { list.addView(row(a, t, it)) }
         }
         scroll.addView(list)
-        card.addView(scroll, LinearLayout.LayoutParams(-1, dp(a, 380)))
+        // Bound the menu to available display height for compact screens and landscape.
+        val screenHeight = a.resources.displayMetrics.heightPixels
+        val menuMaxHeight = (screenHeight - dp(a, 180)).coerceAtLeast(dp(a, 180))
+        card.addView(scroll, LinearLayout.LayoutParams(-1, minOf(dp(a, 380), menuMaxHeight)))
         d.setContentView(card)
         d.setCanceledOnTouchOutside(true)
         d.show()
