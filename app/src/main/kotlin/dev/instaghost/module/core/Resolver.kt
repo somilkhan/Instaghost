@@ -90,11 +90,9 @@ object Descriptor {
     )
     fun of(m: Method) = m.declaringClass.name + "#" + m.name + "#" + m.parameterTypes.joinToString(",") { it.name }
     fun toMethod(sig: String, cl: ClassLoader): Method {
-        require(sig.length <= 4096) { "Descriptor too long" }
-        val parts = sig.split("#", limit = 3)
-        require(parts.size == 3 && parts[0].isNotBlank() && parts[1].isNotBlank()) { "Malformed descriptor" }
+        val parts = requireNotNull(DescriptorPolicy.parse(sig)) { "Malformed descriptor" }
         val (c, n, p) = parts
-        val params = if (p.isEmpty()) emptyArray() else p.split(",").map { resolveType(it, cl) }.toTypedArray()
+        val params = p.map { resolveType(it, cl) }.toTypedArray()
         return Class.forName(c, false, cl).getDeclaredMethod(n, *params).also { it.isAccessible = true }
     }
     private fun resolveType(name: String, cl: ClassLoader): Class<*> {
