@@ -4,7 +4,6 @@ import java.security.MessageDigest
 
 /** Stable, compact cache discriminator for an ordered resolver anchor set. */
 internal object AnchorFingerprint {
-    fun of(anchors: Array<out String>): String = digest(anchors.toList())
     fun of(vararg anchors: String): String = digest(anchors.toList())
 
     private fun digest(anchors: List<String>): String {
