@@ -1,6 +1,7 @@
 package dev.instaghost.module.core
 
 import android.content.Context
+import android.os.Build
 import de.robv.android.xposed.XposedBridge
 import org.luckypray.dexkit.DexKitBridge
 import java.lang.reflect.Method
@@ -10,7 +11,9 @@ import java.lang.reflect.Method
  * We search the dex for string anchors, then cache the answer per app version.
  */
 class Resolver(private val ctx: Context, private val cl: ClassLoader) {
-    private val version = ctx.packageManager.getPackageInfo(ctx.packageName, 0).longVersionCode
+    private val version = ctx.packageManager.getPackageInfo(ctx.packageName, 0).let { info ->
+        if (Build.VERSION.SDK_INT >= 28) info.longVersionCode else info.versionCode.toLong()
+    }
     private val cache = ctx.getSharedPreferences("instaghost_hooks", Context.MODE_PRIVATE)
     private var bridge: DexKitBridge? = null
 
