@@ -22,7 +22,7 @@ class Resolver(private val ctx: Context, private val cl: ClassLoader) {
     }
 
     fun method(key: String, vararg anchors: String): Method? {
-        if (!key.matches(Regex("[a-z0-9_]{1,64}")) || anchors.isEmpty() || anchors.any { it.isBlank() }) return null
+        if (!ResolverInputPolicy.isValid(key, anchors)) return null
         val start = SystemClock.elapsedRealtime()
         val ck = "${version}:${key}:${AnchorFingerprint.of(*anchors)}"
         cache.getString(ck, null)?.let { sig ->
