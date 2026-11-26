@@ -1,6 +1,9 @@
 package dev.instaghost.module.ui
 
 import android.app.Activity
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.widget.Toast
 import android.graphics.Color
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
@@ -106,9 +109,34 @@ class MainActivity : Activity() {
         section(p,"Resolver",null)
         p.addView(card{addView(title("Discovery foundation",18));addView(body("DexKit resolver infrastructure exists. Target anchors and feature behavior are not validated against live Instagram builds."))})
         section(p,"Device support",null)
-        p.addView(card{addView(title("No verified builds",18));addView(body("CI is green for scaffold checks. Device and Instagram compatibility remains unverified."))})
+        p.addView(card{addView(title("No verified builds",18));addView(body("Automated build status has not been verified here. Device and Instagram compatibility remains unverified."))})
         section(p,"Privacy",null)
         p.addView(card{addView(title("Sanitized by design",18));addView(body("No message text, account identifiers, cookies or credentials should be captured in diagnostics."))})
+        section(p,"Share report",null)
+        p.addView(card {
+            addView(body("Copy a companion-only report. It does not include Instagram runtime events or device identifiers."))
+            addView(TextView(this@MainActivity).apply {
+                text="Copy diagnostics report"; textSize=15f; setTextColor(textColor); gravity=Gravity.CENTER
+                setPadding(dp(16),dp(14),dp(16),dp(14)); isClickable=true; isFocusable=true
+                background=GradientDrawable().apply { setColor(if(dark) Color.rgb(48,49,54) else Color.rgb(235,236,240)); cornerRadius=dp(16).toFloat() }
+                setOnClickListener {
+                    val report = buildCompanionReport()
+                    (getSystemService(CLIPBOARD_SERVICE) as ClipboardManager).setPrimaryClip(ClipData.newPlainText("InstaGhost report", report))
+                    Toast.makeText(this@MainActivity,"Report copied",Toast.LENGTH_SHORT).show()
+                }
+            })
+        })
+    }
+    private fun buildCompanionReport(): String {
+        val version = runCatching { packageManager.getPackageInfo(packageName,0).versionName }.getOrNull() ?: "unknown"
+        return buildString {
+            appendLine("InstaGhost companion report")
+            appendLine("Companion version: $version")
+            appendLine("Runtime bridge: not connected")
+            appendLine("Feature hooks: unverified")
+            appendLine("Live Instagram diagnostics: unavailable")
+            appendLine("Report scope: companion app only")
+        }
     }
     private fun settings(p:LinearLayout) {
         p.addView(label("PREFERENCES",11,muted,true))
