@@ -6,6 +6,7 @@ import android.os.SystemClock
 import de.robv.android.xposed.XposedBridge
 import org.luckypray.dexkit.DexKitBridge
 import java.lang.reflect.Method
+import java.lang.reflect.Array
 import java.util.concurrent.ConcurrentHashMap
 
 /** Version-scoped discovery helper. Cached descriptors are hints and validated on read. */
@@ -108,6 +109,11 @@ object Descriptor {
     }
     private fun resolveType(name: String, cl: ClassLoader): Class<*> {
         primitiveTypes[name]?.let { return requireNotNull(it) }
-        return Class.forName(name, false, cl)
+        val dimensions = Regex("(\\\\[\\\\])+").find(name)?.value?.length?.div(2) ?: 0
+        if (dimensions == 0) return Class.forName(name, false, cl)
+        require(dimensions <= 8) { "Array dimensions exceed limit" }
+        val componentName = name.dropLast(dimensions * 2)
+        val component = primitiveTypes[componentName]?.let { requireNotNull(it) } ?: Class.forName(componentName, false, cl)
+        return Array.newInstance(component, *IntArray(dimensions)).javaClass
     }
 }
