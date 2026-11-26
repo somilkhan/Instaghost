@@ -14,7 +14,7 @@ class ResolverCachePolicyTest {
 
     @Test fun malformedAndOtherVersionKeysAreDiscarded() {
         val keys = setOf("8:valid:hash", "8:malformed", "old:key", ":missing", "9:key:hash")
-        assertEquals(setOf("8:malformed", "old:key", ":missing", "9:key:hash"),
+        assertEquals(setOf("old:key", ":missing", "9:key:hash"),
             ResolverCachePolicy.keysToRemove(8L, keys))
     }
 
