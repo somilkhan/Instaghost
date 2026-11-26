@@ -61,7 +61,7 @@ class DiagnosticsTest {
         assertEquals(method, Descriptor.toMethod(Descriptor.of(method), javaClass.classLoader))
     }
 
-    @Test fun oversizedDescriptorIsRejected() {
+    @Test fun descriptorRoundTripsPrimitiveArrayParameters() {\n        val method = Sample::class.java.getDeclaredMethod("primitiveArrayArg", IntArray::class.java)\n        assertEquals(method, Descriptor.toMethod(Descriptor.of(method), javaClass.classLoader))\n    }\n\n    @Test fun oversizedDescriptorIsRejected() {
         try { Descriptor.toMethod("x".repeat(4097), javaClass.classLoader); fail("Expected rejection") }
         catch (_: IllegalArgumentException) { }
     }
@@ -71,7 +71,7 @@ class DiagnosticsTest {
         catch (_: IllegalArgumentException) { }
     }
 
-    private class Sample { fun combine(value: Int, text: String) = value.toString() + text; fun arrayArg(value: Array<String>) = value.size }
+    private class Sample { fun combine(value: Int, text: String) = value.toString() + text; fun arrayArg(value: Array<String>) = value.size; fun primitiveArrayArg(value: IntArray) = value.size }
 
     @Test fun eventRejectsNegativeCountsAndElapsed() {
         try {
