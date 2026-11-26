@@ -108,7 +108,7 @@ class MainActivity : Activity() {
         typeface = Typeface.create("sans-serif", Typeface.BOLD)
     }
     private fun body(text: String) = TextView(this).apply {
-        this.text = text; textSize = 14f; setTextColor(secondary); lineSpacingExtra = dp(3)
+        this.text = text; textSize = 14f; setTextColor(secondary); setLineSpacing(dp(3).toFloat(), 1f)
     }
     private fun label(text: String, size: Int, color: Int, bold: Boolean) = TextView(this).apply {
         this.text = text; textSize = size.toFloat(); setTextColor(color)
