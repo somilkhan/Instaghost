@@ -23,6 +23,21 @@ class DiagnosticsLog(private val capacity: Int = 100) {
     @Synchronized fun clear() = events.clear()
 }
 object RuntimeDiagnostics { val log = DiagnosticsLog(100) }
+
+/** Export only validated keys, enums, counts and durations. Never exports throwable messages. */
+object DiagnosticsReport {
+    fun format(events: List<DiagnosticEvent>, limit: Int = 30): String {
+        require(limit in 1..100)
+        val recent = events.takeLast(limit)
+        return buildString {
+            appendLine("Runtime events: ${recent.size}")
+            if (recent.isEmpty()) appendLine("No runtime events recorded.")
+            recent.forEach { event ->
+                appendLine("${event.featureKey} | v${event.appVersionCode} | ${event.status} | ${event.outcome} | candidates=${event.candidateCount ?: "n/a"} | ${event.elapsedMs}ms | cache=${event.cacheHit} | error=${event.failureCategory ?: "none"}")
+            }
+        }.trimEnd()
+    }
+}
 fun failureCategory(error: Throwable): String = when (error) {
     is ClassNotFoundException, is NoClassDefFoundError -> "CLASS_NOT_FOUND"
     is NoSuchMethodException -> "METHOD_NOT_FOUND"
