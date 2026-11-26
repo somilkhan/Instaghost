@@ -12,8 +12,10 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
 import android.widget.*
+import dev.instaghost.module.compatibility.CompatibilitySnapshot
 import dev.instaghost.module.core.Prefs
 import dev.instaghost.module.features.Feature
+import dev.instaghost.module.features.FeatureInstallRecorder
 import dev.instaghost.module.features.Features
 
 object GlassMenu {
@@ -63,7 +65,46 @@ object GlassMenu {
         val scroll = ScrollView(a).apply { isVerticalScrollBarEnabled = false }
         val list = LinearLayout(a).apply { orientation = LinearLayout.VERTICAL }
         scroll.addView(list)
-        card.addView(scroll, LinearLayout.LayoutParams(-1, dp(a, 380)))
+        card.addView(scroll, LinearLayout.LayoutParams(-1, dp(a, 320)))
+
+        val diagnostics = LinearLayout(a).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(a, 12), dp(a, 12), dp(a, 12), dp(a, 12))
+            background = GradientDrawable().apply {
+                setColor(t.glass)
+                cornerRadius = dp(a, 16).toFloat()
+                setStroke(dp(a, 1), t.border)
+            }
+        }
+        card.addView(text(a, "Diagnostics", 15f, t.text, true).apply {
+            setPadding(0, dp(a, 12), 0, dp(a, 6))
+        })
+        card.addView(diagnostics)
+
+        fun renderDiagnostics() {
+            diagnostics.removeAllViews()
+            val recorder = FeatureInstallRecorder(a)
+            val counts = Features.all.mapNotNull { recorder.status(it.key) }
+                .groupingBy { it.state }.eachCount()
+            val attempted = counts[dev.instaghost.module.features.FeatureStatus.State.ATTEMPTED] ?: 0
+            val failed = counts[dev.instaghost.module.features.FeatureStatus.State.FAILED] ?: 0
+            val unavailable = counts[dev.instaghost.module.features.FeatureStatus.State.UNAVAILABLE] ?: 0
+            diagnostics.addView(text(a, "Feature outcomes: $attempted attempted · $failed failed · $unavailable unavailable", 12f, t.subtext, false))
+            runCatching { CompatibilitySnapshot.capture(a) }.onSuccess { snapshot ->
+                diagnostics.addView(text(a, "Host: ${snapshot.packageName}", 12f, t.subtext, false).apply { setPadding(0, dp(a, 4), 0, 0) })
+                diagnostics.addView(text(a, "Version: ${snapshot.versionName} (${snapshot.versionCode})", 12f, t.subtext, false))
+                diagnostics.addView(text(a, "Android: ${snapshot.sdkRelease} · API ${snapshot.androidApi}", 12f, t.subtext, false))
+            }.onFailure {
+                diagnostics.addView(text(a, "Host snapshot unavailable", 12f, t.subtext, false))
+            }
+            Features.all.forEach { feature ->
+                val status = recorder.status(feature.key) ?: return@forEach
+                diagnostics.addView(text(a, "${feature.title}: ${status.state.name.lowercase().replace('_', ' ')}", 12f, t.text, false).apply {
+                    setPadding(0, dp(a, 5), 0, 0)
+                })
+            }
+        }
+        renderDiagnostics()
 
         fun render(query: String) {
             list.removeAllViews()
@@ -100,7 +141,7 @@ object GlassMenu {
         val sw = Switch(a).apply {
             isChecked = Prefs.bool(f.key)
             trackTintList = android.content.res.ColorStateList.valueOf(t.track)
-            thumbTintList = android.content.res.ColorStateList.valueOf(t.thumbOn)
+            thumbTintList = android.content.res.ColorStateList.valueOf(t.text)
             setOnCheckedChangeListener { _, on -> Prefs.setBool(f.key, on) }
         }
         return LinearLayout(a).apply {
