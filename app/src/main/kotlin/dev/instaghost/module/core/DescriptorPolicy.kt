@@ -29,10 +29,11 @@ internal object DescriptorPolicy {
     private fun validType(value: String): Boolean {
         if (value.isEmpty() || value.length > 512) return false
         if (value in setOf("boolean", "byte", "char", "short", "int", "long", "float", "double")) return true
-        if (value.endsWith("[]")) {
-            val dimensions = value.takeLastWhile { it == '[' || it == ']' }.length / 2
-            if (dimensions !in 1..8) return false
-            return validType(value.dropLast(dimensions * 2))
+        val javaArraySuffix = Regex("(\\\\[\\\\])+").find(value)?.value
+        if (javaArraySuffix != null) {
+            val dimensions = javaArraySuffix.length / 2
+            if (dimensions > 8) return false
+            return validType(value.dropLast(javaArraySuffix.length))
         }
         if (value.startsWith("[")) {
             val dimensions = value.takeWhile { it == '[' }.length
