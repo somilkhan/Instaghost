@@ -22,7 +22,7 @@ class DiagnosticsTest {
         assertEquals("UNEXPECTED_ERROR",failureCategory(IllegalStateException("raw message")))
     }
     @Test fun reportExportsSafeStructuredEventsAndEmptyState() {
-        assertEquals("Runtime events: 0\\nNo runtime events recorded.", DiagnosticsReport.format(emptyList()))
+        assertEquals("Runtime events: 0\nNo runtime events recorded.", DiagnosticsReport.format(emptyList()))
         val e = DiagnosticEvent("feed_hook", 42, RuntimeStatus.FAILED, ResolveOutcome.ERROR, failureCategory="LINKAGE_ERROR")
         val report = DiagnosticsReport.format(listOf(e))
         assertTrue(report.contains("feed_hook | v42 | FAILED | ERROR"))
