@@ -22,3 +22,8 @@ Before designing IPC, decide whether a dedicated provider can authenticate calle
 - cache-hit and invalid-cache paths.
 - unique, ambiguous and empty discovery outcomes.
 - APK split behavior, runtime class-loader behavior and Android version matrix on physical devices.
+
+
+## Startup APK inventory
+
+Resolver startup now emits a sanitized inventory summary (base present, split count, total APK paths, and missing-file count) without logging APK paths. This is inventory-only: split APK DEX scanning remains unsupported, and discovery currently uses the base APK only. A split count greater than zero must not be interpreted as split compatibility.

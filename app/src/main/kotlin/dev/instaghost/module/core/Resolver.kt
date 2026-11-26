@@ -17,6 +17,8 @@ class Resolver(private val ctx: Context, private val cl: ClassLoader) {
     private var bridge: DexKitBridge? = null
 
     init {
+        val inventory = ApkInventory.collect(ctx.applicationInfo)
+        XposedBridge.log("InstaGhost: APK inventory base=${inventory.basePresent} splits=${inventory.splitCount} total=${inventory.totalApks} missing=${inventory.missing}; split DEX scan unsupported")
         val removals = ResolverCachePolicy.keysToRemove(version, cache.all.keys)
         if (removals.isNotEmpty()) cache.edit().also { editor -> removals.forEach(editor::remove) }.apply()
     }
