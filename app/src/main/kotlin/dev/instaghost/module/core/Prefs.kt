@@ -5,11 +5,18 @@ import android.content.SharedPreferences
 
 /** Settings live inside Instagram's own process, so toggles apply without a restart. */
 object Prefs {
-    private lateinit var sp: SharedPreferences
+    private var sp: SharedPreferences? = null
 
-    fun init(ctx: Context) { sp = ctx.getSharedPreferences("instaghost", Context.MODE_PRIVATE) }
-    fun bool(key: String, def: Boolean = false) = sp.getBoolean(key, def)
-    fun setBool(key: String, v: Boolean) = sp.edit().putBoolean(key, v).apply()
-    fun str(key: String): String? = sp.getString(key, null)
-    fun setStr(key: String, v: String) = sp.edit().putString(key, v).apply()
+    @Synchronized
+    fun init(ctx: Context) {
+        sp = ctx.applicationContext.getSharedPreferences("instaghost", Context.MODE_PRIVATE)
+    }
+
+    private fun store(): SharedPreferences =
+        checkNotNull(sp) { "Prefs.init(context) must be called before accessing preferences" }
+
+    fun bool(key: String, def: Boolean = false): Boolean = store().getBoolean(key, def)
+    fun setBool(key: String, v: Boolean) { store().edit().putBoolean(key, v).apply() }
+    fun str(key: String): String? = store().getString(key, null)
+    fun setStr(key: String, v: String) { store().edit().putString(key, v).apply() }
 }
