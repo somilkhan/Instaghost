@@ -3,13 +3,13 @@
 A monochrome Android LSPosed companion/module scaffold for Instagram.
 
 ## Current development status
-This project is experimental. Feature discovery anchors are placeholders and feature behavior has not been validated on an Instagram build. The menu marks planned features as unavailable, and the module deliberately does not register their hooks. Do not treat this scaffold as a working release.
+This project is experimental. Planned feature entries are metadata only, are disabled, and do not register hooks. The menu entry's Instagram resource identifier is unverified and may not work across app versions. Do not treat this scaffold as a working release.
 
 ## Install scaffold
 1. Build in Android Studio, or use a release APK, and install it.
 2. In LSPosed, enable InstaGhost and scope it to Instagram.
 3. Force stop Instagram, then open it.
-4. Long-press the search tab to open the menu.
+4. If supported by that Instagram build, long-press the search tab to open the menu. The entry point is not yet validated.
 
 ## Engineering
 - [Engineering plan](docs/ENGINEERING_PLAN.md)
