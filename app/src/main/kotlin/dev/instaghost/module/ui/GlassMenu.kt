@@ -13,6 +13,7 @@ import android.view.ViewGroup
 import android.view.WindowManager
 import android.widget.*
 import dev.instaghost.module.core.Prefs
+import dev.instaghost.module.ui.LiveLogViewer
 import dev.instaghost.module.features.Feature
 import dev.instaghost.module.features.Features
 
@@ -43,6 +44,7 @@ object GlassMenu {
             }
         }
         card.addView(text(a, "InstaGhost", 22f, t.text, true))
+        card.addView(Button(a).apply { text = "Live Logs"; setOnClickListener { LiveLogViewer.show(a) } })
         card.addView(text(a, "Changes apply right away.", 13f, t.subtext, false).apply { setPadding(0, 0, 0, dp(a, 10)) })
 
         val scroll = ScrollView(a).apply { isVerticalScrollBarEnabled = false }
