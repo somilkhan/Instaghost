@@ -16,8 +16,8 @@ class Resolver(private val ctx: Context, private val cl: ClassLoader) {
     private var bridge: DexKitBridge? = null
 
     init {
-        val stale = cache.all.keys.filter { it.substringBefore(":") != version.toString() }
-        if (stale.isNotEmpty()) cache.edit().also { editor -> stale.forEach(editor::remove) }.apply()
+        val removals = ResolverCachePolicy.keysToRemove(version, cache.all.keys)
+        if (removals.isNotEmpty()) cache.edit().also { editor -> removals.forEach(editor::remove) }.apply()
     }
 
     fun method(key: String, vararg anchors: String): Method? {

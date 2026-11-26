@@ -115,3 +115,11 @@ class DiagnosticsTest {
         status = RuntimeStatus.UNSUPPORTED, outcome = ResolveOutcome.NO_MATCH
     )
 }
+
+    @Test fun resolverCachePolicyRemovesStaleVersionsAndExcessEntries() {
+        val keys = (0 until 140).map { "42:feature_$it:fingerprint" } + "41:old:hash"
+        val removals = ResolverCachePolicy.keysToRemove(42L, keys)
+        assertTrue("old version should be removed", "41:old:hash" in removals)
+        assertEquals(13, removals.size)
+        assertTrue(removals.all { it.startsWith("42:") || it.startsWith("41:") })
+    }
