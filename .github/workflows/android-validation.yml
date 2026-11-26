@@ -17,5 +17,4 @@ jobs:
           distribution: temurin
           java-version: "17"
       - uses: android-actions/setup-android@v3
-      - name: Build debug
-        run: ./gradlew assembleDebug
+      - name: Unit tests\n        run: ./gradlew testDebugUnitTest\n      - name: Build debug\n        run: ./gradlew assembleDebug
