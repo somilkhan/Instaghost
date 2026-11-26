@@ -7,16 +7,16 @@ import android.view.Gravity
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
-import dev.instaghost.module.core.LiveLog
+import dev.instaghost.module.core.LiveLog\nimport dev.instaghost.module.core.CompatibilitySnapshot
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
 object LiveLogViewer {
     fun show(activity: Activity) {
-        val entries = LiveLog.all()
+        val entries = LiveLog.all()\n        val compatibility = runCatching { CompatibilitySnapshot.read(activity).display() }.getOrDefault("Host details unavailable")
         val content = LinearLayout(activity).apply { orientation = LinearLayout.VERTICAL; setPadding(24, 12, 24, 12) }
-        if (entries.isEmpty()) {
+        content.addView(TextView(activity).apply { text = compatibility; textSize = 12f; setPadding(0, 0, 0, 16) })\n        if (entries.isEmpty()) {
             content.addView(TextView(activity).apply { text = "No events recorded yet."; textSize = 14f })
         } else entries.forEach { e ->
             val row = LinearLayout(activity).apply { orientation = LinearLayout.VERTICAL; setPadding(0, 10, 0, 10) }
@@ -30,7 +30,7 @@ object LiveLogViewer {
             content.addView(row)
         }
         val scroll = ScrollView(activity).apply { addView(content) }
-        AlertDialog.Builder(activity).setTitle("Live Logs · ${entries.size}").setView(scroll)
+        AlertDialog.Builder(activity).setTitle("Diagnostics · ${entries.size} events").setView(scroll)
             .setPositiveButton("Close", null)
             .setNeutralButton("Clear") { _, _ -> LiveLog.clear(); show(activity) }
             .show()
