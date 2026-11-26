@@ -16,7 +16,7 @@ data class CompatibilitySnapshot(
             val info = context.packageManager.getPackageInfo(context.packageName, 0)
             return CompatibilitySnapshot(
                 packageName = context.packageName,
-                versionCode = info.longVersionCode,
+                versionCode = if (Build.VERSION.SDK_INT >= 28) info.longVersionCode else info.versionCode.toLong(),
                 versionName = info.versionName.orEmpty(),
                 androidApi = Build.VERSION.SDK_INT,
                 sdkRelease = Build.VERSION.RELEASE.orEmpty(),
