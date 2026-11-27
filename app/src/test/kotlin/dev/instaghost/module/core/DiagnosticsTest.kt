@@ -31,6 +31,9 @@ class DiagnosticsTest {
     @Test fun reportLimitIsBounded() {
         try { DiagnosticsReport.format(emptyList(), 101); fail("expected") } catch(_:IllegalArgumentException) {}
     }
+    @Test fun negativeVersionRejected() {
+        try { DiagnosticEvent("valid", -1, RuntimeStatus.FAILED, ResolveOutcome.ERROR); fail("expected") } catch(_:IllegalArgumentException) {}
+    }
     @Test fun invalidEventDataRejected() {
         try { DiagnosticEvent("invalid key",1,RuntimeStatus.FAILED,ResolveOutcome.ERROR); fail("expected") } catch(_:IllegalArgumentException) {}
         try { DiagnosticEvent("valid",1,RuntimeStatus.FAILED,ResolveOutcome.ERROR,failureCategory="raw exception"); fail("expected") } catch(_:IllegalArgumentException) {}
