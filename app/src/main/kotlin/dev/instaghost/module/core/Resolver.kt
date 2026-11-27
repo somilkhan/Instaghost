@@ -9,7 +9,6 @@ import java.lang.reflect.Method
 import java.lang.reflect.Array
 import java.util.concurrent.ConcurrentHashMap
 
-/** Version-scoped discovery helper. Cached descriptors are hints and validated on read. */
 class Resolver(private val ctx: Context, private val cl: ClassLoader) {
     private val version = ctx.packageManager.getPackageInfo(ctx.packageName, 0).let { info ->
         if (Build.VERSION.SDK_INT >= 28) info.longVersionCode else info.versionCode.toLong()
@@ -18,10 +17,11 @@ class Resolver(private val ctx: Context, private val cl: ClassLoader) {
     private val bridgeLock = Any()
     private var bridge: DexKitBridge? = null
     private val resolvedMethods = ConcurrentHashMap<String, Method>()
+    private val scanPlan = ApkScanPlanner.plan(ApkInventory.collect(ctx.applicationInfo))
 
     init {
         val inventory = ApkInventory.collect(ctx.applicationInfo)
-        XposedBridge.log("InstaGhost: APK inventory base=${inventory.basePresent} splits=${inventory.splitCount} total=${inventory.totalApks} missing=${inventory.missing}; split DEX scan unsupported")
+        XposedBridge.log("InstaGhost: APK inventory base=" + inventory.basePresent + " splits=" + inventory.splitCount + " total=" + inventory.totalApks + " missing=" + inventory.missing + "; split DEX scan unsupported")
         val removals = ResolverCachePolicy.keysToRemove(version, cache.all.keys)
         if (removals.isNotEmpty()) cache.edit().also { editor -> removals.forEach(editor::remove) }.apply()
     }
@@ -29,7 +29,7 @@ class Resolver(private val ctx: Context, private val cl: ClassLoader) {
     fun method(key: String, vararg anchors: String): Method? {
         if (!ResolverInputPolicy.isValid(key, anchors)) return null
         val start = SystemClock.elapsedRealtime()
-        val ck = "${version}:${key}:${AnchorFingerprint.of(*anchors)}"
+        val ck = version.toString() + ":" + key + ":" + AnchorFingerprint.of(*anchors)
         resolvedMethods[ck]?.let { method ->
             record(key, ResolveOutcome.CACHE_HIT, RuntimeStatus.RESOLVED, elapsed(start), cacheHit=true)
             return method
@@ -47,9 +47,13 @@ class Resolver(private val ctx: Context, private val cl: ClassLoader) {
         record(key, ResolveOutcome.CACHE_MISS, RuntimeStatus.RESOLVING, elapsed(start))
         return runCatching {
             synchronized(bridgeLock) {
+                if (!scanPlan.usable) {
+                    record(key, ResolveOutcome.ERROR, RuntimeStatus.UNSUPPORTED, elapsed(start), failureCategory="NO_BASE_APK")
+                    return@synchronized null
+                }
                 val b = bridge ?: run {
                     System.loadLibrary("dexkit")
-                    DexKitBridge.create(ctx.applicationInfo.sourceDir).also { bridge = it }
+                    DexKitBridge.create(scanPlan.scanApks.single()).also { bridge = it }
                 }
                 val candidates = b.findMethod { matcher { usingStrings(*anchors) } }
                 if (candidates.size != 1) {
@@ -68,11 +72,10 @@ class Resolver(private val ctx: Context, private val cl: ClassLoader) {
             }
         }.onFailure {
             record(key, ResolveOutcome.ERROR, RuntimeStatus.FAILED, elapsed(start), failureCategory=failureCategory(it))
-            XposedBridge.log("InstaGhost: resolver failure (${failureCategory(it)})")
+            XposedBridge.log("InstaGhost: resolver failure (" + failureCategory(it) + ")")
         }.getOrNull()
     }
 
-    /** Persist a descriptor and enforce the version-scoped cache bound immediately. */
     private fun storeDescriptor(key: String, descriptor: String) {
         synchronized(bridgeLock) {
             cache.edit().putString(key, descriptor).apply()
