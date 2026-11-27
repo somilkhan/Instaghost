@@ -10,6 +10,7 @@ data class DiagnosticEvent(
 ) {
     init {
         require(featureKey.matches(Regex("[a-z0-9_]{1,64}")))
+        require(appVersionCode >= 0)
         require(candidateCount == null || candidateCount >= 0)
         require(elapsedMs >= 0)
         require(failureCategory == null || failureCategory.matches(Regex("[A-Z_]{1,40}")))
