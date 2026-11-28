@@ -16,6 +16,7 @@ class Resolver(private val ctx: Context, private val cl: ClassLoader) {
     private val cache = ctx.getSharedPreferences("instaghost_hooks", Context.MODE_PRIVATE)
     private val bridgeLock = Any()
     private var bridge: DexKitBridge? = null
+    @Volatile private var closed = false
     private val resolvedMethods = ConcurrentHashMap<String, Method>()
     private val inventory = ApkInventory.collect(ctx.applicationInfo)
     private val scanPlan = ApkScanPlanner.plan(inventory)
@@ -27,7 +28,7 @@ class Resolver(private val ctx: Context, private val cl: ClassLoader) {
     }
 
     fun method(key: String, vararg anchors: String): Method? {
-        if (!ResolverInputPolicy.isValid(key, anchors)) return null
+        if (closed || !ResolverInputPolicy.isValid(key, anchors)) return null
         val start = SystemClock.elapsedRealtime()
         val ck = version.toString() + ":" + key + ":" + AnchorFingerprint.of(*anchors)
         resolvedMethods[ck]?.let { method ->
@@ -91,7 +92,12 @@ class Resolver(private val ctx: Context, private val cl: ClassLoader) {
     }
 
     fun close() {
-        synchronized(bridgeLock) { runCatching { bridge?.close() }; bridge = null }
+        synchronized(bridgeLock) {
+            if (closed) return
+            closed = true
+            runCatching { bridge?.close() }
+            bridge = null
+        }
         resolvedMethods.clear()
     }
 }
