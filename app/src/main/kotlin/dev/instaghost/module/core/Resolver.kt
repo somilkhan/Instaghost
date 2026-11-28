@@ -17,11 +17,11 @@ class Resolver(private val ctx: Context, private val cl: ClassLoader) {
     private val bridgeLock = Any()
     private var bridge: DexKitBridge? = null
     private val resolvedMethods = ConcurrentHashMap<String, Method>()
-    private val scanPlan = ApkScanPlanner.plan(ApkInventory.collect(ctx.applicationInfo))
+    private val inventory = ApkInventory.collect(ctx.applicationInfo)
+    private val scanPlan = ApkScanPlanner.plan(inventory)
 
     init {
-        val inventory = ApkInventory.collect(ctx.applicationInfo)
-        XposedBridge.log("InstaGhost: APK inventory base=" + inventory.basePresent + " splits=" + inventory.splitCount + " total=" + inventory.totalApks + " missing=" + inventory.missing + "; split DEX scan unsupported")
+        XposedBridge.log("InstaGhost: APK inventory base=" + inventory.basePresent + " splits=" + inventory.splitCount + " total=" + inventory.totalApks + " missing=" + inventory.missing + "; scanApks=" + scanPlan.scanApks.size + "; split DEX scan unsupported")
         val removals = ResolverCachePolicy.keysToRemove(version, cache.all.keys)
         if (removals.isNotEmpty()) cache.edit().also { editor -> removals.forEach(editor::remove) }.apply()
     }

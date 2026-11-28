@@ -14,12 +14,12 @@ class ApkInventoryTest {
         assertEquals(1, inventory.splitCount)
     }
 
-    @Test fun countsMissingPathsAndHandlesMissingBase() {
-        val inventory = ApkInventory.fromPaths(null, listOf("one.apk", "two.apk"), { it == "one.apk" })
+    @Test fun countsMissingPathsAndExcludesMissingFilesFromScanInventory() {
+        val inventory = ApkInventory.fromPaths("base.apk", listOf("one.apk", "two.apk"), { it == "one.apk" })
         assertFalse(inventory.basePresent)
-        assertEquals(2, inventory.totalApks)
+        assertEquals(3, inventory.totalApks)
         assertEquals(2, inventory.splitCount)
-        assertEquals(1, inventory.missing)
+        assertEquals(2, inventory.missing)
     }
 
     @Test fun blankBaseAndSplitPathsAreIgnored() {
@@ -28,5 +28,12 @@ class ApkInventoryTest {
         assertEquals(listOf("valid.apk"), inventory.splits)
         assertEquals(1, inventory.totalApks)
         assertEquals(0, inventory.missing)
+    }
+
+    @Test fun missingBaseDoesNotBecomeScanCandidate() {
+        val inventory = ApkInventory.fromPaths("base.apk", listOf("split.apk"), { it == "split.apk" })
+        val plan = ApkScanPlanner.plan(inventory)
+        assertFalse(plan.usable)
+        assertEquals(emptyList<String>(), plan.scanApks)
     }
 }
