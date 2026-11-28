@@ -10,37 +10,78 @@ import de.robv.android.xposed.XposedHelpers
 import de.robv.android.xposed.callbacks.XC_LoadPackage
 import dev.instaghost.module.core.Prefs
 import dev.instaghost.module.core.Resolver
+import dev.instaghost.module.core.failureCategory
 import dev.instaghost.module.features.Features
 import dev.instaghost.module.ui.GlassMenu
 
 class MainHook : IXposedHookLoadPackage {
     override fun handleLoadPackage(lpparam: XC_LoadPackage.LoadPackageParam) {
-        if (lpparam.packageName != "com.instagram.android") return
+        if (lpparam.packageName != TARGET_PACKAGE) return
 
-        XposedHelpers.findAndHookMethod(Application::class.java, "onCreate", object : XC_MethodHook() {
-            override fun afterHookedMethod(p: MethodHookParam) {
-                val app = p.thisObject as Application
-                Prefs.init(app)
-                val resolver = Resolver(app, lpparam.classLoader)
-                Features.all.forEach { f ->
-                    runCatching { f.install(resolver) }
-                        .onFailure { XposedBridge.log("InstaGhost: ${f.key} failed: $it") }
+        synchronized(registrationLock) {
+            if (applicationHookInstalled) return
+            applicationHookInstalled = true
+        }
+
+        runCatching {
+            XposedHelpers.findAndHookMethod(Application::class.java, "onCreate", object : XC_MethodHook() {
+                override fun afterHookedMethod(p: MethodHookParam) {
+                    val app = p.thisObject as? Application ?: return
+                    runCatching { initialize(app, lpparam.classLoader) }
+                        .onFailure { XposedBridge.log("InstaGhost: initialization failed (${failureCategory(it)})") }
                 }
-                resolver.close()
-                installMenuEntry()
-            }
-        })
+            })
+        }.onFailure {
+            synchronized(registrationLock) { applicationHookInstalled = false }
+            XposedBridge.log("InstaGhost: startup hook failed (${failureCategory(it)})")
+        }
     }
 
-    /** Long-press the search tab to open the InstaGhost menu. */
-    private fun installMenuEntry() {
-        XposedHelpers.findAndHookMethod(Activity::class.java, "onResume", object : XC_MethodHook() {
-            override fun afterHookedMethod(p: MethodHookParam) {
-                val a = p.thisObject as Activity
-                val id = a.resources.getIdentifier("search_tab", "id", a.packageName) // verify id name in jadx
-                if (id == 0) return
-                a.findViewById<View>(id)?.setOnLongClickListener { GlassMenu.show(a); true }
+    private fun initialize(app: Application, classLoader: ClassLoader) {
+        Prefs.init(app)
+        val resolver = runCatching { Resolver(app, classLoader) }.getOrElse {
+            XposedBridge.log("InstaGhost: resolver setup failed (${failureCategory(it)})")
+            return
+        }
+        try {
+            Features.all.filter { it.implemented }.forEach { feature ->
+                runCatching { feature.install(resolver) }
+                    .onFailure { XposedBridge.log("InstaGhost: ${feature.key} failed (${failureCategory(it)})") }
             }
-        })
+        } finally {
+            runCatching { resolver.close() }
+                .onFailure { XposedBridge.log("InstaGhost: resolver cleanup failed (${failureCategory(it)})") }
+        }
+
+        runCatching { installMenuEntry() }
+            .onFailure { XposedBridge.log("InstaGhost: menu initialization failed (${failureCategory(it)})") }
+    }
+
+    /** Experimental entry: long-press the search tab. The resource ID is not validated. */
+    private fun installMenuEntry() {
+        synchronized(menuHookLock) {
+            if (menuHookInstalled) return
+            XposedHelpers.findAndHookMethod(Activity::class.java, "onResume", object : XC_MethodHook() {
+                override fun afterHookedMethod(p: MethodHookParam) {
+                    val activity = p.thisObject as? Activity ?: return
+                    runCatching {
+                        val id = activity.resources.getIdentifier("search_tab", "id", activity.packageName)
+                        if (id != 0) activity.findViewById<View>(id)?.setOnLongClickListener {
+                            GlassMenu.show(activity)
+                            true
+                        }
+                    }.onFailure { XposedBridge.log("InstaGhost: menu entry unavailable (${failureCategory(it)})") }
+                }
+            })
+            menuHookInstalled = true
+        }
+    }
+
+    companion object {
+        private const val TARGET_PACKAGE = "com.instagram.android"
+        private val registrationLock = Any()
+        private val menuHookLock = Any()
+        @Volatile private var applicationHookInstalled = false
+        @Volatile private var menuHookInstalled = false
     }
 }

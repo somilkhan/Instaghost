@@ -1,0 +1,26 @@
+name: Feature request
+description: Suggest a transparent, user-controlled feature.
+title: "[Feature]: "
+labels: ["enhancement", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: "Requests for covert evasion or tampering with other users' privacy/security signals are out of scope."
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem to solve
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+    validations:
+      required: true
+  - type: textarea
+    id: impact
+    attributes:
+      label: User control, privacy and accessibility considerations
+    validations:
+      required: true

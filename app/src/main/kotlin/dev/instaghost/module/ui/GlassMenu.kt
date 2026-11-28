@@ -20,20 +20,9 @@ object GlassMenu {
     private fun dp(a: Activity, v: Int) = (v * a.resources.displayMetrics.density).toInt()
 
     fun show(a: Activity) {
+        if (a.isFinishing || (Build.VERSION.SDK_INT >= 17 && a.isDestroyed)) return
         val t = Theme(a)
         val d = Dialog(a)
-        d.window?.apply {
-            setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
-            setGravity(Gravity.BOTTOM)
-            setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
-            if (Build.VERSION.SDK_INT >= 31) { // real blur of what is behind the dialog
-                addFlags(WindowManager.LayoutParams.FLAG_BLUR_BEHIND)
-                attributes = attributes.apply { blurBehindRadius = 60 }
-                setBackgroundBlurRadius(80)
-            }
-            setDimAmount(if (t.dark) 0.35f else 0.15f)
-        }
-
         val card = LinearLayout(a).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(dp(a, 20), dp(a, 18), dp(a, 20), dp(a, 22))
@@ -43,7 +32,7 @@ object GlassMenu {
             }
         }
         card.addView(text(a, "InstaGhost", 22f, t.text, true))
-        card.addView(text(a, "Changes apply right away.", 13f, t.subtext, false).apply { setPadding(0, 0, 0, dp(a, 10)) })
+        card.addView(text(a, "Experimental scaffold. Features are unavailable until verified and implemented.", 13f, t.subtext, false).apply { setPadding(0, 0, 0, dp(a, 10)) })
 
         val scroll = ScrollView(a).apply { isVerticalScrollBarEnabled = false }
         val list = LinearLayout(a).apply { orientation = LinearLayout.VERTICAL }
@@ -54,9 +43,24 @@ object GlassMenu {
             items.forEach { list.addView(row(a, t, it)) }
         }
         scroll.addView(list)
-        card.addView(scroll, LinearLayout.LayoutParams(-1, dp(a, 380)))
+        // Bound the menu to available display height for compact screens and landscape.
+        val screenHeight = a.resources.displayMetrics.heightPixels
+        val menuMaxHeight = (screenHeight - dp(a, 180)).coerceAtLeast(dp(a, 180))
+        card.addView(scroll, LinearLayout.LayoutParams(-1, minOf(dp(a, 380), menuMaxHeight)))
         d.setContentView(card)
+        d.setCanceledOnTouchOutside(true)
         d.show()
+        d.window?.apply {
+            setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+            setGravity(Gravity.BOTTOM)
+            setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+            if (Build.VERSION.SDK_INT >= 31) {
+                addFlags(WindowManager.LayoutParams.FLAG_BLUR_BEHIND)
+                attributes = attributes.apply { blurBehindRadius = 60 }
+                setBackgroundBlurRadius(80)
+            }
+            setDimAmount(if (t.dark) 0.35f else 0.15f)
+        }
     }
 
     private fun row(a: Activity, t: Theme, f: Feature): View {
@@ -66,13 +70,14 @@ object GlassMenu {
         val col = LinearLayout(a).apply {
             orientation = LinearLayout.VERTICAL
             addView(text(a, f.title, 15f, t.text, false))
-            addView(text(a, f.summary, 12f, t.subtext, false))
+            addView(text(a, f.summary + if (f.implemented) "" else "  •  Not implemented", 12f, t.subtext, false))
         }
         val sw = Switch(a).apply {
-            isChecked = Prefs.bool(f.key)
+            isChecked = Prefs.bool(f.key) && f.implemented
+            isEnabled = f.implemented
             trackTintList = android.content.res.ColorStateList.valueOf(t.track)
             thumbTintList = android.content.res.ColorStateList.valueOf(t.thumbOn)
-            setOnCheckedChangeListener { _, on -> Prefs.setBool(f.key, on) }
+            setOnCheckedChangeListener { _, on -> if (f.implemented) Prefs.setBool(f.key, on) }
         }
         return LinearLayout(a).apply {
             orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL
